@@ -2,6 +2,7 @@
  * HANGAR.variants[familyId] = list of variants. Each variant copies its family's figures and overrides
  * only what differs (same units as data.js). `key` makes the page id `<familyId>-<key>`.
  * A variant with no overrides beyond the text is the family's own representative variant.
+ * popular: true = the model a family's page opens on (its most common model).
  * built: null = number not shown (unknown for that variant alone).
  * Figures are approximate published values, like the rest of Hangar.
  */
@@ -27,7 +28,7 @@ HANGAR.variants = {
       engine: 'Pratt & Whitney F100-PW-200 afterburning turbofan', thrust: 64.9, thrustAB: 106, empty: 7070, mtow: 16057, payload: 5400, cost: 15,
       blurb: 'The original lightweight fighter.',
       note: 'The original lightweight day fighter. Israeli F-16As ("Netz") flew the 1981 raid on the Osirak reactor.' },
-    { key: 'c', variant: 'F-16C/D (Block 50/52)', intro: 1991, built: null,
+    { key: 'c', variant: 'F-16C/D (Block 50/52)', popular: true, intro: 1991, built: null,
       blurb: 'The most produced version.',
       note: 'The most produced version, with a bigger engine choice (GE F110 on Block 50, P&W F100-229 on Block 52) and precision strike gear. The D is the two-seater.' },
     { key: 'i', variant: 'F-16I Sufa', country: 'USA / Israel', first: 2003, intro: 2004, built: 102, crew: 2, wiki: 'General_Dynamics_F-16_Fighting_Falcon_variants',
@@ -49,7 +50,7 @@ HANGAR.variants = {
       engine: 'Pratt & Whitney F100-PW-100 afterburning turbofan', thrust: 65, thrustAB: 106, empty: 12250, mtow: 25400, cost: 28,
       blurb: 'The first Eagles.',
       note: 'The first production Eagles. Israeli F-15As ("Baz") scored the type’s first air-to-air kills in 1979.' },
-    { key: 'c', variant: 'F-15C/D', first: 1979, intro: 1979, built: null,
+    { key: 'c', variant: 'F-15C/D', popular: true, first: 1979, intro: 1979, built: null,
       blurb: 'The classic air superiority Eagle.',
       note: 'More internal fuel, conformal tank options and a better radar. The core of the Eagle’s unbeaten air combat record.' },
     { key: 'e', variant: 'F-15E Strike Eagle', wiki: 'McDonnell_Douglas_F-15E_Strike_Eagle', first: 1986, intro: 1989, built: 236, crew: 2, role: 'Two-seat strike fighter',
@@ -72,7 +73,7 @@ HANGAR.variants = {
   ],
 
   f35: [
-    { key: 'a', variant: 'F-35A', blurb: 'Conventional take-off, for air forces.',
+    { key: 'a', variant: 'F-35A', popular: true, blurb: 'Conventional take-off, for air forces.',
       note: 'The air force version with an internal 25 mm cannon. The most numerous F-35.' },
     { key: 'b', variant: 'F-35B', first: 2008, intro: 2015, role: 'Stealth STOVL multirole fighter',
       engine: 'Pratt & Whitney F135-PW-600 with shaft-driven lift fan', empty: 14650, mtow: 27200, fuel: 6125, range: 1670, radius: 935, takeoff: 168, landing: undefined, cost: 109,
@@ -100,7 +101,7 @@ HANGAR.variants = {
       range: 2000, ferry: 3330, radius: 740, cost: 29,
       blurb: 'Improved legacy Hornet.',
       note: 'Better radar, night attack gear and engines. Flown by the Blue Angels until 2020 and still by Finland, Switzerland, Spain and others.' },
-    { key: 'e', variant: 'F/A-18E Super Hornet', blurb: 'Bigger, single-seat Super Hornet.',
+    { key: 'e', variant: 'F/A-18E Super Hornet', popular: true, blurb: 'Bigger, single-seat Super Hornet.',
       note: 'About 25% larger than the Hornet, with more fuel and two extra weapon stations.' },
     { key: 'f', variant: 'F/A-18F Super Hornet', crew: 2, blurb: 'Two-seat Super Hornet.',
       note: 'Two seats: the back-seater runs sensors and weapons (the jet seen in Top Gun: Maverick).' },
@@ -110,7 +111,7 @@ HANGAR.variants = {
   ],
 
   su27: [
-    { key: 's', variant: 'Su-27S', blurb: 'The original Flanker.',
+    { key: 's', variant: 'Su-27S', popular: true, blurb: 'The original Flanker.',
       note: 'The original single-seat air superiority Flanker.' },
     { key: 'su30', variant: 'Su-30MKI', wiki: 'Sukhoi_Su-30MKI', maker: 'Sukhoi / HAL', country: 'Russia / India', first: 1997, intro: 2002, built: 272, crew: 2,
       role: 'Two-seat multirole fighter', engine: 'Saturn AL-31FP afterburning turbofan with thrust vectoring', thrust: 74.5, thrustAB: 123,
@@ -137,7 +138,7 @@ HANGAR.variants = {
   ],
 
   mig29: [
-    { key: '912', variant: 'MiG-29 (9.12)', blurb: 'The original Fulcrum.',
+    { key: '912', variant: 'MiG-29 (9.12)', popular: true, blurb: 'The original Fulcrum.',
       note: 'The original front-line Fulcrum, built for short-range air combat from rough airfields.' },
     { key: 'ub', variant: 'MiG-29UB', first: 1981, intro: 1985, crew: 2, role: 'Two-seat combat trainer', built: null,
       blurb: 'Two-seat trainer.',
@@ -160,7 +161,7 @@ HANGAR.variants = {
     { key: 'b', variant: 'J-10B', first: 2008, intro: 2014, built: null,
       blurb: 'New intake and passive-array radar.',
       note: 'A bump-type (DSI) intake without moving parts and a passive electronically scanned radar.' },
-    { key: 'c', variant: 'J-10C', blurb: 'AESA radar and long-range missiles.',
+    { key: 'c', variant: 'J-10C', popular: true, blurb: 'AESA radar and long-range missiles.',
       note: 'AESA radar and PL-15 long-range missiles; often built with the Chinese WS-10 engine.' },
     { key: 'ce', variant: 'J-10CE', country: 'China / Pakistan', intro: 2022, built: null,
       blurb: 'Export version, flown by Pakistan.',
@@ -172,12 +173,12 @@ HANGAR.variants = {
       note: 'The first batch, mainly for air defence. Some are being retired.' },
     { key: 't2', variant: 'Tranche 2', name: 'Eurofighter Typhoon Tranche 2', intro: 2008, built: null, blurb: 'Multirole computers and wiring.',
       note: 'New computers and wiring that let the Typhoon carry ground-attack weapons.' },
-    { key: 't3', variant: 'Tranche 3/4', name: 'Eurofighter Typhoon Tranche 3/4', intro: 2015, built: null, blurb: 'AESA radar ready, more fuel options.',
+    { key: 't3', variant: 'Tranche 3/4', popular: true, name: 'Eurofighter Typhoon Tranche 3/4', intro: 2015, built: null, blurb: 'AESA radar ready, more fuel options.',
       note: 'Prepared for the Captor-E AESA radar and conformal fuel tanks. Germany and Spain are buying more as Tranche 4.' }
   ],
 
   rafale: [
-    { key: 'c', variant: 'Rafale C', blurb: 'Single-seat air force version.',
+    { key: 'c', variant: 'Rafale C', popular: true, blurb: 'Single-seat air force version.',
       note: 'Single-seat version for the French Air and Space Force and most export customers.' },
     { key: 'b', variant: 'Rafale B', crew: 2, empty: 10600, blurb: 'Two-seat version.',
       note: 'Two-seat version, used for training and for the French nuclear strike role.' },
@@ -195,7 +196,7 @@ HANGAR.variants = {
     { key: 'n', variant: 'Mirage 2000N/D', wiki: 'Dassault_Mirage_2000N/2000D', first: 1983, intro: 1988, built: 161, crew: 2, role: 'Two-seat strike aircraft',
       blurb: 'Two-seat ground strike versions.',
       note: 'Two-seat strike versions: the 2000N carried France’s nuclear missile until 2018, the 2000D is the conventional version.' },
-    { key: '5', variant: 'Mirage 2000-5', blurb: 'Modernised multirole version.',
+    { key: '5', variant: 'Mirage 2000-5', popular: true, blurb: 'Modernised multirole version.',
       note: 'Modernised multirole version with a new radar and a glass cockpit, flown by Taiwan, Greece and Qatar.' },
     { key: '9', variant: 'Mirage 2000-9', country: 'France / UAE', first: 2000, intro: 2003, built: null, blurb: 'The UAE’s most advanced Mirage.',
       note: 'Built for the United Arab Emirates, the most advanced Mirage 2000.' }

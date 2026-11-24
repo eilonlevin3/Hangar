@@ -61,7 +61,7 @@ Use the variant named in `variant` consistently. Check the article title opens o
 - Compare holds at most 3 aircraft; series colours are fixed slots (blue, orange, aqua) validated for colour-blind use.
 - Dark theme is the default (Chrome's forced dark mode on the laptop greys out a light page).
 - Units: "kt / ft" is the default and shows the metric value in parentheses, e.g. "50,000 ft (15,240 m)", "497 kt (920 km/h)" (owner, 2026-11-24, for all fields). "Metric" shows metric only. Saved per device (`hangar-units-v2`). Narrow card stats put the metric value on a second line.
-- Fighters: one card per family (F-16, Su-27 Flanker...); its page lists the variants, each with its own page, figures and compare slot. The top 10 by fleet size get a "#N fighter" badge and sort first (2026-11-24).
+- Fighters: one card per family (F-16, Su-27 Flanker...). Opening a family shows its most common model (`popular: true` in variants.js) with a model picker under the title; each model has its own figures, envelope and compare slot (owner, 2026-11-24). The top 10 by fleet size get a "#N fighter" badge and sort first (2026-11-24).
 
 ## Ideas not built yet (ask the owner before starting)
 

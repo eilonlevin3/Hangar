@@ -15,6 +15,10 @@
     });
     VARS.push(...a.vars);
   });
+  /* Opening a family shows its most common model; DEF maps family id -> that model's id. */
+  const DEF = {};
+  ALL.forEach(a => { if (a.vars) DEF[a.id] = (a.vars.find(v => v.popular) || a.vars[0]).id; });
+  const real = id => DEF[id] || id;
   const TOP = {};
   (H.top || []).forEach((t, i) => { TOP[t.id] = Object.assign({ rank: i + 1 }, t); });
   const BY_ID = Object.fromEntries(ALL.concat(VARS).map(a => [a.id, a]));
@@ -72,6 +76,7 @@
   }
 
   function toggleCompare(id) {
+    id = real(id);
     const i = compare.indexOf(id);
     if (i >= 0) compare.splice(i, 1);
     else if (compare.length >= MAX_CMP) { toast('You can compare up to 3 aircraft. Remove one first.'); return false; }
@@ -123,7 +128,7 @@
   function route() {
     const h = location.hash.replace(/^#\/?/, '');
     const [name, arg] = h.split('/');
-    if (name === 'a' && BY_ID[arg]) return { name: 'detail', id: arg };
+    if (name === 'a' && BY_ID[arg]) return { name: 'detail', id: real(arg) };
     if (name === 'compare') return { name: 'compare', ids: arg };
     return { name: 'browse' };
   }
@@ -136,7 +141,7 @@
     if (r.name === 'detail') renderDetail(view, BY_ID[r.id]);
     else if (r.name === 'compare') {
       if (r.ids) {
-        const ids = r.ids.split(',').filter(id => BY_ID[id]).slice(0, MAX_CMP);
+        const ids = r.ids.split(',').filter(id => BY_ID[id]).map(real).slice(0, MAX_CMP);
         if (ids.length) { compare = ids; saveCompare(); }
       }
       renderCompare(view);
@@ -190,7 +195,7 @@
   }
 
   function cardHTML(a) {
-    const sel = compare.includes(a.id);
+    const sel = compare.includes(real(a.id));
     const third = a.pax > 0 ? ['Seats', String(a.pax)] : ['Max weight', U.fmt(a.mtow, 'mass')];
     return `<article class="card${sel ? ' sel' : ''}" data-id="${a.id}">
       <div class="card-img ph">${PLANE}${imgTag(thumb(a), a.name)}${a.status !== 'Active' ? `<span class="badge">${a.status === 'Limited' ? 'Limited service' : 'Retired'}</span>` : ''}${TOP[a.id] ? `<span class="badge rank">#${TOP[a.id].rank} fighter</span>` : ''}</div>
@@ -312,7 +317,7 @@
 
     view.innerHTML = `
       <div class="wrap">
-        ${fam ? `<a class="back" href="#/a/${fam.id}">← ${esc(fam.name)}</a>` : '<a class="back" href="#/">← All aircraft</a>'}
+        <a class="back" href="#/">← All aircraft</a>
         <section class="d-hero" id="dhero">
           <div class="d-hero-inner">
             <div class="tags">
@@ -320,8 +325,8 @@
               <span class="tag status-${a.status}">${a.status === 'Active' ? 'In service' : a.status === 'Limited' ? 'Limited service' : 'Retired'}</span>
               ${top ? `<span class="tag rank" title="${esc(top.fleetNote || '')}">#${top.rank} most flown fighter · about ${U.fmt(top.fleet, 'count')} in service</span>` : ''}
             </div>
-            <h1>${esc(a.name)}</h1>
-            ${fam ? `<div class="d-fam">Variant of <a href="#/a/${fam.id}">${esc(fam.name)}</a></div>` : ''}
+            <h1>${esc(fam ? fam.name : a.name)}</h1>
+            ${fam ? `<div class="models" aria-label="Model">${fam.vars.map(v => `<a class="model${v.id === a.id ? ' on' : ''}" href="#/a/${v.id}"${v.id === a.id ? ' aria-current="page"' : ''}>${esc(v.variant)}${v.popular ? ' <small>most common</small>' : ''}</a>`).join('')}</div>` : ''}
             <div class="d-sub">${esc(a.role)} · ${esc(a.maker)} · ${esc(a.country)} · first flight ${a.first}</div>
             <div class="d-actions">
               <button class="btn ghost${sel ? ' on' : ''}" id="dcmp" data-cmp="${a.id}" aria-pressed="${sel}">${sel ? '✓ In comparison' : '+ Add to compare'}</button>
@@ -427,7 +432,7 @@
     if (!f.vars) return '';
     return `<section class="panel" id="variants">
       <h2>Variants</h2>
-      <p class="sub">${cur === f ? `Figures above are for the ${esc(f.variant)}. Tap a variant for its own figures.` : `Other versions of the ${esc(f.name)}.`}</p>
+      <p class="sub">This page shows the ${esc(cur.variant)}. Tap another model to see its own figures and envelope, and to compare it.</p>
       <div class="vars">${f.vars.map(v => `<a class="var-row${v.id === cur.id ? ' on' : ''}" href="#/a/${v.id}">
         <span class="var-name">${esc(v.variant)}${v.country !== f.country ? ` <small>${esc(v.country)}</small>` : ''}</span>
         <span class="var-meta">${v.intro || v.first}${v.blurb ? ' · ' + esc(v.blurb) : ''}</span>
@@ -582,7 +587,7 @@
     const list = compare.map(id => BY_ID[id]);
     const n = list.length;
     const cols = Math.min(MAX_CMP, n + (n < MAX_CMP ? 1 : 0));
-    const opts = H.categories.map(c => `<optgroup label="${esc(c.label)}">${ALL.filter(a => a.cats[0] === c.id).map(a => (compare.includes(a.id) ? '' : `<option value="${a.id}">${esc(a.name)}</option>`) + (a.vars || []).filter(v => !compare.includes(v.id)).map(v => `<option value="${v.id}">  – ${esc(v.variant)}</option>`).join('')).join('')}</optgroup>`).join('');
+    const opts = H.categories.map(c => `<optgroup label="${esc(c.label)}">${ALL.filter(a => a.cats[0] === c.id).map(a => (a.vars ? a.vars : [a]).filter(v => !compare.includes(v.id)).map(v => `<option value="${v.id}">${esc(v.parent ? BY_ID[v.parent].name + ' · ' + v.variant : v.name)}</option>`).join('')).join('')}</optgroup>`).join('');
     const addSlot = n < MAX_CMP ? `<div class="cmp-add"><b>Add an aircraft</b><select id="cmp-add" aria-label="Add an aircraft"><option value="">Choose…</option>${opts}</select><a href="#/" class="muted" style="font-size:13px">or browse with photos →</a></div>` : '';
     const head = `<div class="cmp-head" style="grid-template-columns:repeat(${cols}, minmax(0,1fr))">${list.map((a, i) => `
       <div class="cmp-col" style="--c:${SERIES[i]}">
@@ -709,7 +714,7 @@
         e.preventDefault();
         const id = cmp.dataset.cmp;
         if (toggleCompare(id)) {
-          const on = compare.includes(id);
+          const on = compare.includes(real(id));
           document.querySelectorAll(`[data-cmp="${id}"]`).forEach(b => {
             b.setAttribute('aria-pressed', on);
             if (b.id === 'dcmp') { b.textContent = on ? '✓ In comparison' : '+ Add to compare'; b.classList.toggle('on', on); }

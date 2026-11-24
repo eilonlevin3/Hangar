@@ -377,3 +377,8 @@ footer.foot { color: var(--muted); font-size: 12.5px; padding: 30px 0 120px; bor
   .seg button { padding: 6px 5px; font-size: 12px; }
   .nav-link { padding-left: 8px; padding-right: 8px; }
 }
+.models { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; }
+.models::-webkit-scrollbar { display: none; }
+.model { flex: none; font-size: 13px; font-weight: 600; padding: 6px 11px; border-radius: 999px; background: rgba(255,255,255,.16); color: #fff; text-decoration: none; backdrop-filter: blur(6px); white-space: nowrap; }
+.model small { font-weight: 500; opacity: .8; margin-left: 2px; }
+.model.on { background: var(--accent); color: var(--accent-ink); }
