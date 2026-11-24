@@ -43,6 +43,8 @@ The owner works on this from an iPhone through Telegram. Do this:
 | `js/envelope.js` | Modeled flight envelope and its SVG chart (hover tooltip, Mach 1 line). |
 | `js/app.js` | Views: browse, detail (`#/a/<id>`), compare (`#/compare` or `#/compare/id1,id2,id3`), lightbox, tray. |
 | `css/app.css` | All styles. Colour tokens on `:root`; dark is the default theme (`data-theme`). |
+| `js/drone-variants.js` | Drone models (MQ-9A/ER/B, RQ-4/Triton, Hermes 900/StarLiner/HFE...), same format as variants.js with inline `est`. |
+| `tools/check-envelopes.js` | `node tools/check-envelopes.js`: checks every aircraft and model (cruise and max-speed points inside the envelope, basic consistency). **Run it before every push**; it must report 0 problems. |
 | `sw.js` | Service worker: network-first app shell. |
 
 ## Adding an aircraft
@@ -71,5 +73,6 @@ Use the variant named in `variant` consistently. Check the article title opens o
 - Favourites list, "random aircraft" button, quiz mode.
 - Silhouette size comparison (overlay outlines to scale).
 
+- Drones are split into two categories (owner, 2026-11-24): `male` "MALE drones" (medium/high-altitude long-endurance, incl. Global Hawk) and `smalluav` "Smaller drones & quadcopters" (hand-launched, loitering munitions, camera quadcopters). At least 15 in each.
 - Drones: the top 20 by popularity get a "#N drone" badge (`HANGAR.topDrones` in variants.js, 2026-11-24).
 - Estimates (owner, 2026-11-24): any figure that is assumed rather than published gets a * that opens a sheet explaining the assumption. Keep doing this for new data.

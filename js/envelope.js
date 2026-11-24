@@ -37,12 +37,12 @@
     const ballistic = hAero < ceiling * 0.98;
 
     let hMax = a.vmaxAlt !== undefined ? a.vmaxAlt : (supersonic ? 11000 : jet ? 8000 : 0.5 * ceiling);
-    hMax = Math.min(hMax, 0.85 * hAero);
+    hMax = Math.min(hMax, (a.vmaxAlt !== undefined ? 0.97 : 0.85) * hAero);  // a published top-speed altitude is trusted up to near the ceiling
     let vSL = a.vmaxSL !== undefined ? a.vmaxSL : supersonic ? Math.min(a.vmax, 1470) : jet ? Math.min(a.vmax * 0.95, 670) : a.vmax * 0.88;
     vSL = Math.min(vSL, a.vmax);
 
     let hKnee = hMax + 0.6 * (hAero - hMax);
-    if (a.cruiseAlt && a.cruiseAlt < hAero * 0.97) hKnee = Math.max(hKnee, Math.min(a.cruiseAlt, hAero * 0.97));
+    if (a.cruiseAlt && a.cruiseAlt < hAero * 0.995) hKnee = Math.max(hKnee, Math.min(a.cruiseAlt, hAero * 0.995));  // keep the cruise point inside
     const vc = hover ? 0.4 * a.vmax : Math.min(a.vmax, lo(hAero) * 1.06);
 
     const hi = h => {

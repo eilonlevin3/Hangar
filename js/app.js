@@ -9,7 +9,9 @@
     const vs = (H.variants || {})[a.id];
     if (!vs) return;
     a.vars = vs.map(v => {
-      const o = Object.assign({}, a, v, (H.variantPerf || {})[a.id + '-' + v.key], { id: a.id + '-' + v.key, parent: a.id, name: v.name || v.variant });
+      const perf = (H.variantPerf || {})[a.id + '-' + v.key] || {};
+      const o = Object.assign({}, a, v, perf, { id: a.id + '-' + v.key, parent: a.id, name: v.name || v.variant });
+      o.est = Object.assign({}, a.est, v.est, perf.est);  // a model keeps the family's estimate notes unless it overrides them
       delete o.vars; delete o.key;
       return o;
     });
@@ -26,7 +28,7 @@
   const CAT = Object.fromEntries(H.categories.map(c => [c.id, c]));
   const MAX_CMP = 3;
   const SERIES = ['var(--s1)', 'var(--s2)', 'var(--s3)'];
-  const FEATURE = { fighter: 'f22', bomber: 'b2', attack: 'a10', recon: 'sr71', uav: 'mq9', transport: 'c17', narrowbody: 'a320neo', widebody: 'a380', regional: 'atr72', bizjet: 'g650', private: 'sr22', helicopter: 'ah64', trainer: 't38', warbird: 'spitfire', record: 'concorde' };
+  const FEATURE = { fighter: 'f22', bomber: 'b2', attack: 'a10', recon: 'sr71', male: 'mq9', smalluav: 'mavic3', transport: 'c17', narrowbody: 'a320neo', widebody: 'a380', regional: 'atr72', bizjet: 'g650', private: 'sr22', helicopter: 'ah64', trainer: 't38', warbird: 'spitfire', record: 'concorde' };
   const ROUTES = [
     ['London → Paris', 344], ['Tel Aviv → Athens', 1200], ['Tel Aviv → London', 3570], ['London → New York', 5570],
     ['Tel Aviv → New York', 9130], ['Los Angeles → Sydney', 12050], ['Singapore → New York', 15350]

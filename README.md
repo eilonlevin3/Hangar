@@ -1,7 +1,7 @@
 # Hangar
 
-An aircraft explorer. Browse 111 aircraft across 15 categories (fighters, bombers, airliners, business jets,
-private aircraft, helicopters, drones, warbirds, record breakers and more), open any one for its specs,
+An aircraft explorer. Browse 124 aircraft across 16 categories (fighters, bombers, airliners, business jets,
+private aircraft, helicopters, MALE drones, smaller drones and quadcopters, warbirds, record breakers and more), open any one for its specs,
 photo gallery, modeled flight envelope, runway needs and range, and compare up to three side by side.
 
 Live: https://eilonlevin3.github.io/Hangar/
