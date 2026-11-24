@@ -75,7 +75,9 @@ button { cursor: pointer; }
 /* ---------- Header ---------- */
 .top {
   position: sticky; top: 0; z-index: 30;
-  height: var(--header-h);
+  height: calc(var(--header-h) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
   background: color-mix(in srgb, var(--bg) 82%, transparent);
   backdrop-filter: saturate(1.4) blur(12px);
   -webkit-backdrop-filter: saturate(1.4) blur(12px);
@@ -115,7 +117,7 @@ button { cursor: pointer; }
 .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: #6b778a; }
 
 .chips {
-  position: sticky; top: var(--header-h); z-index: 20;
+  position: sticky; top: calc(var(--header-h) + env(safe-area-inset-top, 0px)); z-index: 20;
   background: var(--bg);
   display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; scrollbar-width: none;
 }
@@ -311,14 +313,14 @@ button { cursor: pointer; }
 .tray .link { border: 0; background: none; color: var(--muted); font-size: 13px; padding: 4px; }
 
 /* ---------- Lightbox ---------- */
-.lb { position: fixed; inset: 0; z-index: 60; background: rgba(3, 6, 12, .94); display: flex; flex-direction: column; color: #fff; }
+.lb { position: fixed; inset: 0; z-index: 60; background: rgba(3, 6, 12, .94); display: flex; flex-direction: column; color: #fff; padding-top: env(safe-area-inset-top, 0px); }
 .lb[hidden] { display: none; }
 .lb-stage { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; min-height: 0; touch-action: pan-y; }
 .lb-stage img { max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; -webkit-user-drag: none; }
 .lb-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 46px; height: 46px; border-radius: 50%; border: 0; background: rgba(255,255,255,.12); color: #fff; font-size: 24px; }
 .lb-btn:hover { background: rgba(255,255,255,.24); }
 .lb-prev { left: 12px; } .lb-next { right: 12px; }
-.lb-close { position: absolute; right: 12px; top: 12px; z-index: 2; width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(255,255,255,.14); color: #fff; font-size: 22px; }
+.lb-close { position: absolute; right: calc(12px + env(safe-area-inset-right, 0px)); top: calc(12px + env(safe-area-inset-top, 0px)); z-index: 2; width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(255,255,255,.14); color: #fff; font-size: 22px; }
 .lb-cap { padding: 10px 16px max(14px, env(safe-area-inset-bottom)); font-size: 13px; color: rgba(255,255,255,.8); text-align: center; }
 .lb-cap a { color: #9cc7ff; }
 
