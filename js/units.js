@@ -1,9 +1,10 @@
 /* Unit conversion and number formatting. Data is stored metric; the user picks
- * metric or aviation units (kt, ft, nm, lb). */
+ * metric, or aviation units (kt, ft, nm, lb) shown with the metric value in parentheses
+ * (owner, 2026-11-24: e.g. "35,000 ft (10,668 m)"). Aviation is the default. */
 (function () {
   const H = window.HANGAR;
-  let system = 'metric';
-  try { system = localStorage.getItem('hangar-units') || 'metric'; } catch (e) {}
+  let system = 'aviation';
+  try { system = localStorage.getItem('hangar-units-v2') || 'aviation'; } catch (e) {}
 
   const nf = (d) => new Intl.NumberFormat('en-US', { maximumFractionDigits: d, minimumFractionDigits: 0 });
   const n0 = nf(0), n1 = nf(1), n2 = nf(2);
@@ -35,25 +36,36 @@
     get system() { return system; },
     set(sys) {
       system = sys;
-      try { localStorage.setItem('hangar-units', sys); } catch (e) {}
+      try { localStorage.setItem('hangar-units-v2', sys); } catch (e) {}
     },
     unit(kind) {
       const k = KINDS[kind];
       return k ? (system === 'metric' ? k[0] : k[2]) : '';
     },
-    conv(v, kind) {
+    conv(v, kind, sys) {
       const k = KINDS[kind];
       if (!k) return v;
-      return v * (system === 'metric' ? k[1] : k[3]);
+      return v * ((sys || system) === 'metric' ? k[1] : k[3]);
     },
-    /* Format a metric value in the chosen system. */
+    /* Format a metric value in the chosen system. Aviation adds " (metric)" after unit-bearing values;
+     * opts.single = aviation value only (narrow places such as chart labels). */
     fmt(v, kind, opts) {
       opts = opts || {};
       if (v === undefined || v === null || Number.isNaN(v)) return '—';
+      const one = fmtIn(system, v, kind, opts);
+      if (system === 'metric' || opts.single || !KINDS[kind]) return one;
+      return one + ' (' + fmtIn('metric', v, kind, opts) + ')';
+    },
+    num: round
+  };
+
+  function fmtIn(system, v, kind, opts) {
+    const unit = (k) => (KINDS[k] ? (system === 'metric' ? KINDS[k][0] : KINDS[k][2]) : '');
+    const conv = (x, k) => U.conv(x, k, system);
       switch (kind) {
         case 'mass':
           if (system === 'metric' && Math.abs(v) >= 10000 && !opts.exact) return n1.format(v / 1000) + ' t';
-          return n0.format(U.conv(v, kind)) + ' ' + U.unit(kind);
+          return n0.format(conv(v, kind)) + ' ' + unit(kind);
         case 'cost': return '$' + round(v) + 'M';
         case 'count': return n0.format(v);
         case 'year': return String(v);
@@ -67,13 +79,11 @@
         case 'runway':
         case 'dist':
         case 'speed':
-          return n0.format(Math.round(U.conv(v, kind) / (opts.step || 1)) * (opts.step || 1)) + ' ' + U.unit(kind);
+          return n0.format(Math.round(conv(v, kind) / (opts.step || 1)) * (opts.step || 1)) + ' ' + unit(kind);
         default:
-          return round(U.conv(v, kind)) + (U.unit(kind) ? ' ' + U.unit(kind) : '');
+          return round(conv(v, kind)) + (unit(kind) ? ' ' + unit(kind) : '');
       }
-    },
-    num: round
-  };
+  }
 
   /* International Standard Atmosphere. h in metres. */
   U.isa = function (h) {

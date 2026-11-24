@@ -89,7 +89,7 @@ button { cursor: pointer; }
 .nav-link.on { color: var(--text); background: var(--surface-2); }
 .nav-link .pill { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 4px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-size: 12px; text-align: center; line-height: 20px; }
 .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface); }
-.seg button { border: 0; background: none; padding: 6px 10px; font-size: 13px; color: var(--text-2); }
+.seg button { border: 0; background: none; padding: 6px 10px; font-size: 13px; color: var(--text-2); white-space: nowrap; }
 .seg button.on { background: var(--accent); color: var(--accent-ink); }
 .icon-btn { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; width: 36px; height: 34px; display: grid; place-items: center; color: var(--text-2); }
 .icon-btn svg { width: 18px; height: 18px; }
@@ -153,7 +153,7 @@ button { cursor: pointer; }
 .card-img img, .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .35s, transform .4s; }
 .card-img img.ok, .ph img.ok { opacity: 1; }
 .card:hover .card-img img { transform: scale(1.04); }
-.badge { position: absolute; left: 10px; top: 10px; font-size: 11.5px; font-weight: 650; padding: 2px 8px; border-radius: 999px; background: rgba(5, 10, 20, .72); color: #fff; letter-spacing: .01em; }
+.badge { z-index: 2; pointer-events: none; position: absolute; left: 10px; top: 10px; font-size: 11.5px; font-weight: 650; padding: 2px 8px; border-radius: 999px; background: rgba(5, 10, 20, .72); color: #fff; letter-spacing: .01em; }
 .card-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 2px; flex: 1; }
 .card-cat { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
 .card h3 { margin: 0; font-size: 16.5px; line-height: 1.25; letter-spacing: -.005em; }
@@ -355,4 +355,25 @@ footer.foot { color: var(--muted); font-size: 12.5px; padding: 30px 0 120px; bor
 }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
+}
+
+/* ---------- variants & top 10 ---------- */
+.badge.rank { z-index: 3; pointer-events: none; top: auto; bottom: 10px; background: rgba(200, 130, 20, .92); }
+.nvar { color: var(--accent); font-weight: 650; }
+.tag.rank { background: rgba(200, 130, 20, .88); }
+.card-stats dd small { display: block; font-size: 11.5px; font-weight: 500; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+.d-fam { color: rgba(255,255,255,.9); font-size: 14px; margin: -2px 0 4px; }
+.d-fam a { color: #fff; font-weight: 650; }
+.vars { display: grid; gap: 6px; }
+.var-row { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "name go" "meta go"; align-items: center; column-gap: 10px;
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); color: var(--text); text-decoration: none; }
+.var-row:hover { border-color: var(--accent); }
+.var-row.on { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.var-name { grid-area: name; font-weight: 650; }
+.var-name small { color: var(--muted); font-weight: 500; margin-left: 4px; }
+.var-meta { grid-area: meta; color: var(--muted); font-size: 13px; }
+.var-go { grid-area: go; color: var(--muted); font-size: 20px; }
+@media (max-width: 420px) {
+  .seg button { padding: 6px 5px; font-size: 12px; }
+  .nav-link { padding-left: 8px; padding-right: 8px; }
 }

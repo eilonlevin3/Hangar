@@ -35,7 +35,8 @@ The owner works on this from an iPhone through Telegram. Do this:
 
 | File | What it is |
 |---|---|
-| `js/data.js` | The aircraft database (categories + one object per aircraft). Units in the header comment. |
+| `js/data.js` | The aircraft database (categories + one object per aircraft family). Units in the header comment. |
+| `js/variants.js` | `HANGAR.variants` (variants per family; each overrides only what differs, page `#/a/<family>-<key>`) and `HANGAR.top` (the top-10 fighters by fleet size). |
 | `js/units.js` | Metric / aviation unit conversion, number formatting, standard atmosphere (ISA). |
 | `js/wiki.js` | Photos and intro text from the Wikipedia API (`origin=*`), cached in localStorage 14 days. |
 | `js/envelope.js` | Modeled flight envelope and its SVG chart (hover tooltip, Mach 1 line). |
@@ -59,10 +60,12 @@ Use the variant named in `variant` consistently. Check the article title opens o
 - Photos are not copied into the repo. They load from Wikimedia Commons with author and licence shown in the lightbox.
 - Compare holds at most 3 aircraft; series colours are fixed slots (blue, orange, aqua) validated for colour-blind use.
 - Dark theme is the default (Chrome's forced dark mode on the laptop greys out a light page).
-- Units: "Metric" (km/h, m, km, kg) or "kt / ft" (knots, feet, nautical miles, pounds), saved per device.
+- Units: "kt / ft" is the default and shows the metric value in parentheses, e.g. "50,000 ft (15,240 m)", "497 kt (920 km/h)" (owner, 2026-11-24, for all fields). "Metric" shows metric only. Saved per device (`hangar-units-v2`). Narrow card stats put the metric value on a second line.
+- Fighters: one card per family (F-16, Su-27 Flanker...); its page lists the variants, each with its own page, figures and compare slot. The top 10 by fleet size get a "#N fighter" badge and sort first (2026-11-24).
 
 ## Ideas not built yet (ask the owner before starting)
 
-- More aircraft (Mirage 2000, Kfir, Lavi, F-16I Sufa, Boeing 777X, A321XLR, Bell 206, Antonov An-2, Zeppelin...).
+- Variants for the other categories (airliners, helicopters...).
+- More aircraft (Kfir, Lavi, Boeing 777X, A321XLR, Bell 206, Antonov An-2, Zeppelin...).
 - Favourites list, "random aircraft" button, quiz mode.
 - Silhouette size comparison (overlay outlines to scale).

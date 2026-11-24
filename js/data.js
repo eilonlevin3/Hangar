@@ -61,7 +61,7 @@ HANGAR.aircraft = [
     range: 2200, radius: 1239, takeoff: 550, landing: 1000, gmax: 9, gmin: -3, cost: 82.5,
     note: 'Built in three versions: conventional (A), short take-off and vertical landing (B), and carrier (C).' },
 
-  { id: 'fa18ef', name: 'F/A-18E/F Super Hornet', variant: 'F/A-18E', maker: 'Boeing', country: 'USA', cats: ['fighter'], role: 'Carrier-based multirole fighter', wiki: 'Boeing_F/A-18E/F_Super_Hornet',
+  { id: 'fa18ef', name: 'F/A-18 Hornet & Super Hornet', variant: 'F/A-18E Super Hornet', maker: 'Boeing', country: 'USA', cats: ['fighter'], role: 'Carrier-based multirole fighter', wiki: 'Boeing_F/A-18E/F_Super_Hornet',
     first: 1995, intro: 2001, status: 'Active', built: 700, crew: 1, pax: 0, carrier: true,
     len: 18.31, span: 13.62, height: 4.88, wing: 46.45, empty: 14552, mtow: 29937, payload: 8050, fuel: 6780,
     engN: 2, engine: 'GE F414-GE-400 afterburning turbofan', thrust: 62.3, thrustAB: 98,
@@ -85,7 +85,7 @@ HANGAR.aircraft = [
     range: 1850, ferry: 3700, takeoff: 400, landing: 450, gmax: 9, gmin: -3.6, cost: 90,
     note: 'One airframe family covers air defence, strike, reconnaissance and carrier operations (Rafale M).' },
 
-  { id: 'su27', name: 'Sukhoi Su-27', variant: 'Su-27S', maker: 'Sukhoi', country: 'USSR / Russia', cats: ['fighter'], role: 'Air superiority fighter', wiki: 'Sukhoi_Su-27',
+  { id: 'su27', name: 'Sukhoi Su-27 Flanker', variant: 'Su-27S', maker: 'Sukhoi', country: 'USSR / Russia', cats: ['fighter'], role: 'Air superiority fighter', wiki: 'Sukhoi_Su-27',
     first: 1977, intro: 1985, status: 'Active', built: 809, crew: 1, pax: 0,
     len: 21.94, span: 14.7, height: 5.92, wing: 62, empty: 16380, mtow: 30450, payload: 4430, fuel: 9400,
     engN: 2, engine: 'Saturn AL-31F afterburning turbofan', thrust: 74.5, thrustAB: 122.6,
@@ -108,6 +108,22 @@ HANGAR.aircraft = [
     vmax: 2400, vmaxAlt: 11000, vmaxSL: 1500, cruise: 900, cruiseAlt: 10000, vstall: 230, ceiling: 18013, climb: 330,
     range: 1430, ferry: 2100, takeoff: 250, landing: 600, gmax: 9, cost: 29,
     note: 'Intakes close on the ground and air enters through louvres on top, protecting the engines from debris.' },
+
+  { id: 'j10', name: 'Chengdu J-10', variant: 'J-10C', maker: 'Chengdu Aircraft Corporation', country: 'China', cats: ['fighter'], role: 'Multirole fighter', wiki: 'Chengdu_J-10',
+    first: 1998, intro: 2004, status: 'Active', built: 600, crew: 1, pax: 0,
+    len: 16.9, span: 9.75, height: 5.43, wing: 33.1, empty: 9750, mtow: 19277, payload: 5600, fuel: 4500,
+    engN: 1, engine: 'Shenyang WS-10B afterburning turbofan', thrust: 79, thrustAB: 130,
+    vmax: 2205, vmaxAlt: 11000, vmaxSL: 1300, cruise: 900, cruiseAlt: 10000, vstall: 230, ceiling: 18000, climb: 300,
+    radius: 550, ferry: 3200, gmax: 9, gmin: -3, cost: 40,
+    note: 'China’s first home-designed modern fighter: a tailless delta wing with canards, like the cancelled Israeli Lavi.' },
+
+  { id: 'm2000', name: 'Dassault Mirage 2000', variant: 'Mirage 2000-5', maker: 'Dassault Aviation', country: 'France', cats: ['fighter'], role: 'Multirole fighter', wiki: 'Dassault_Mirage_2000',
+    first: 1978, intro: 1984, status: 'Active', built: 601, crew: 1, pax: 0,
+    len: 14.36, span: 9.13, height: 5.2, wing: 41, empty: 7500, mtow: 17000, payload: 6300, fuel: 3160,
+    engN: 1, engine: 'SNECMA M53-P2 afterburning turbofan', thrust: 64.3, thrustAB: 95.1,
+    vmax: 2336, vmaxAlt: 11000, vmaxSL: 1300, cruise: 900, cruiseAlt: 10000, vstall: 210, ceiling: 17060, climb: 285,
+    range: 1550, ferry: 3335, takeoff: 450, landing: 600, gmax: 9, gmin: -3.2, cost: 38,
+    note: 'A tailless delta like the earlier Mirage III, made stable enough to dogfight by fly-by-wire controls.' },
 
   { id: 'gripen', name: 'Saab JAS 39 Gripen', variant: 'JAS 39C', maker: 'Saab', country: 'Sweden', cats: ['fighter'], role: 'Light multirole fighter', wiki: 'Saab_JAS_39_Gripen',
     first: 1988, intro: 1996, status: 'Active', built: 300, crew: 1, pax: 0,

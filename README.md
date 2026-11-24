@@ -1,6 +1,6 @@
 # Hangar
 
-An aircraft explorer. Browse 92 aircraft across 15 categories (fighters, bombers, airliners, business jets,
+An aircraft explorer. Browse 94 aircraft across 15 categories (the top 10 fighters with their variants) (fighters, bombers, airliners, business jets,
 private aircraft, helicopters, drones, warbirds, record breakers and more), open any one for its specs,
 photo gallery, modeled flight envelope, runway needs and range, and compare up to three side by side.
 

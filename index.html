@@ -17,7 +17,7 @@
     try { t = localStorage.getItem('hangar-theme') || 'dark'; } catch (e) {}
     document.documentElement.dataset.theme = t;
   </script>
-  <link rel="stylesheet" href="css/app.css?v=1">
+  <link rel="stylesheet" href="css/app.css?v=2">
 </head>
 <body>
   <header class="top">
@@ -30,7 +30,7 @@
       <a class="nav-link" id="nav-compare" href="#/compare">Compare</a>
       <div class="seg" id="units" role="group" aria-label="Units">
         <button data-u="metric" title="km/h, m, km, kg">Metric</button>
-        <button data-u="aviation" title="knots, feet, nautical miles, pounds">kt / ft</button>
+        <button data-u="aviation" title="knots, feet, nautical miles, pounds, with metric in brackets">kt / ft</button>
       </div>
       <button class="icon-btn" id="theme" aria-label="Toggle dark mode" title="Light / dark">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -53,10 +53,11 @@
     <div class="lb-cap" id="lb-cap"></div>
   </div>
 
-  <script src="js/data.js?v=1"></script>
-  <script src="js/units.js?v=1"></script>
+  <script src="js/data.js?v=2"></script>
+  <script src="js/variants.js?v=2"></script>
+  <script src="js/units.js?v=2"></script>
   <script src="js/wiki.js?v=1"></script>
   <script src="js/envelope.js?v=1"></script>
-  <script src="js/app.js?v=1"></script>
+  <script src="js/app.js?v=2"></script>
 </body>
 </html>

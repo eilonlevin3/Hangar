@@ -2,8 +2,22 @@
 (function () {
   const H = window.HANGAR;
   const U = H.units, W = H.wiki;
-  const ALL = H.aircraft;
-  const BY_ID = Object.fromEntries(ALL.map(a => [a.id, a]));
+  const ALL = H.aircraft;  // one entry per aircraft family (one card each)
+  /* Variants (js/variants.js): each copies its family and overrides what differs; page id <family>-<key>. */
+  const VARS = [];
+  ALL.forEach(a => {
+    const vs = (H.variants || {})[a.id];
+    if (!vs) return;
+    a.vars = vs.map(v => {
+      const o = Object.assign({}, a, v, { id: a.id + '-' + v.key, parent: a.id, name: v.name || v.variant });
+      delete o.vars; delete o.key;
+      return o;
+    });
+    VARS.push(...a.vars);
+  });
+  const TOP = {};
+  (H.top || []).forEach((t, i) => { TOP[t.id] = Object.assign({ rank: i + 1 }, t); });
+  const BY_ID = Object.fromEntries(ALL.concat(VARS).map(a => [a.id, a]));
   const CAT = Object.fromEntries(H.categories.map(c => [c.id, c]));
   const MAX_CMP = 3;
   const SERIES = ['var(--s1)', 'var(--s2)', 'var(--s3)'];
@@ -18,7 +32,7 @@
   const PLANE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>';
 
   /* ---------- state ---------- */
-  const S = { cat: 'all', q: '', sort: 'name', status: 'all', country: 'all', thumbs: {} };
+  const S = { cat: 'all', q: '', sort: 'popular', status: 'all', country: 'all', thumbs: {} };
   let compare = [];
   try { compare = JSON.parse(localStorage.getItem('hangar-compare') || '[]').filter(id => BY_ID[id]).slice(0, MAX_CMP); } catch (e) {}
   const saveCompare = () => { try { localStorage.setItem('hangar-compare', JSON.stringify(compare)); } catch (e) {} };
@@ -142,12 +156,13 @@
       if (S.status !== 'all' && a.status !== S.status) return false;
       if (S.country !== 'all' && !a.country.includes(S.country)) return false;
       if (q) {
-        const hay = [a.name, a.variant, a.maker, a.country, a.role, a.engine, a.cats.map(c => CAT[c].label).join(' ')].join(' ').toLowerCase();
+        const hay = [a.name, a.variant, a.maker, a.country, a.role, a.engine, a.cats.map(c => CAT[c].label).join(' '), (a.vars || []).map(v => v.variant + ' ' + v.country).join(' ')].join(' ').toLowerCase();
         return q.split(/\s+/).every(w => hay.includes(w));
       }
       return true;
     });
     const by = {
+      popular: (a, b) => ((TOP[a.id] || {}).rank || 999) - ((TOP[b.id] || {}).rank || 999) || a.name.localeCompare(b.name),
       name: (a, b) => a.name.localeCompare(b.name),
       speed: (a, b) => (b.vmax || 0) - (a.vmax || 0),
       range: (a, b) => (D.bestRange(b) || 0) - (D.bestRange(a) || 0),
@@ -166,20 +181,28 @@
     return [...set].sort();
   }
 
+  /* Card stats are narrow: aviation value on one line, metric under it. */
+  function two(v, kind, opts) {
+    const main = U.fmt(v, kind, Object.assign({ single: true }, opts));
+    const full = U.fmt(v, kind, opts);
+    const m = full.length > main.length ? full.slice(main.length).trim().replace(/^\(|\)$/g, '') : '';
+    return esc(main) + (m ? `<small>${esc(m)}</small>` : '');
+  }
+
   function cardHTML(a) {
     const sel = compare.includes(a.id);
     const third = a.pax > 0 ? ['Seats', String(a.pax)] : ['Max weight', U.fmt(a.mtow, 'mass')];
     return `<article class="card${sel ? ' sel' : ''}" data-id="${a.id}">
-      <div class="card-img ph">${PLANE}${imgTag(thumb(a), a.name)}${a.status !== 'Active' ? `<span class="badge">${a.status === 'Limited' ? 'Limited service' : 'Retired'}</span>` : ''}</div>
+      <div class="card-img ph">${PLANE}${imgTag(thumb(a), a.name)}${a.status !== 'Active' ? `<span class="badge">${a.status === 'Limited' ? 'Limited service' : 'Retired'}</span>` : ''}${TOP[a.id] ? `<span class="badge rank">#${TOP[a.id].rank} fighter</span>` : ''}</div>
       <button class="cmp-btn" data-cmp="${a.id}" aria-pressed="${sel}">${sel ? '✓ Comparing' : '+ Compare'}</button>
       <div class="card-body">
         <div class="card-cat">${esc(catLabel(a))} · ${esc(a.country)}</div>
         <h3><a href="#/a/${a.id}">${esc(a.name)}</a></h3>
-        <div class="card-maker">${esc(a.maker)} · ${a.first}</div>
+        <div class="card-maker">${esc(a.maker)} · ${a.first}${a.vars ? ` · <b class="nvar">${a.vars.length} variants</b>` : ''}</div>
         <dl class="card-stats">
-          <div><dt>Top speed</dt><dd>${U.fmt(a.vmax, 'speed', { step: 10 })}</dd></div>
-          <div><dt>Range</dt><dd>${U.fmt(D.bestRange(a), 'dist', { step: 10 })}</dd></div>
-          <div><dt>${third[0]}</dt><dd>${third[1]}</dd></div>
+          <div><dt>Top speed</dt><dd>${two(a.vmax, 'speed', { step: 10 })}</dd></div>
+          <div><dt>Range</dt><dd>${two(D.bestRange(a), 'dist', { step: 10 })}</dd></div>
+          <div><dt>${third[0]}</dt><dd>${a.pax > 0 ? third[1] : two(a.mtow, 'mass')}</dd></div>
         </dl>
       </div>
     </article>`;
@@ -217,7 +240,7 @@
         <div class="toolbar">
           <span class="count" id="count"></span>
           <select id="sort" aria-label="Sort">
-            ${[['name', 'Name A–Z'], ['speed', 'Fastest'], ['range', 'Longest range'], ['ceiling', 'Highest ceiling'], ['mtow', 'Heaviest'], ['pax', 'Most seats'], ['newest', 'Newest first flight'], ['oldest', 'Oldest first flight']].map(([v, l]) => `<option value="${v}"${S.sort === v ? ' selected' : ''}>${l}</option>`).join('')}
+            ${[['popular', 'Top 10 fighters first'], ['name', 'Name A–Z'], ['speed', 'Fastest'], ['range', 'Longest range'], ['ceiling', 'Highest ceiling'], ['mtow', 'Heaviest'], ['pax', 'Most seats'], ['newest', 'Newest first flight'], ['oldest', 'Oldest first flight']].map(([v, l]) => `<option value="${v}"${S.sort === v ? ' selected' : ''}>${l}</option>`).join('')}
           </select>
           <select id="status" aria-label="Status">
             ${[['all', 'Any status'], ['Active', 'In service'], ['Limited', 'Limited service'], ['Retired', 'Retired']].map(([v, l]) => `<option value="${v}"${S.status === v ? ' selected' : ''}>${l}</option>`).join('')}
@@ -271,6 +294,8 @@
 
   /* ================= DETAIL ================= */
   function renderDetail(view, a) {
+    const fam = a.parent ? BY_ID[a.parent] : null;
+    const top = TOP[fam ? fam.id : a.id];
     const sel = compare.includes(a.id);
     const mach = D.mach(a);
     const end = D.endurance(a);
@@ -287,14 +312,16 @@
 
     view.innerHTML = `
       <div class="wrap">
-        <a class="back" href="#/">← All aircraft</a>
+        ${fam ? `<a class="back" href="#/a/${fam.id}">← ${esc(fam.name)}</a>` : '<a class="back" href="#/">← All aircraft</a>'}
         <section class="d-hero" id="dhero">
           <div class="d-hero-inner">
             <div class="tags">
               ${a.cats.map(c => `<a class="tag" href="#/" data-gocat="${c}">${esc(CAT[c].label)}</a>`).join('')}
               <span class="tag status-${a.status}">${a.status === 'Active' ? 'In service' : a.status === 'Limited' ? 'Limited service' : 'Retired'}</span>
+              ${top ? `<span class="tag rank" title="${esc(top.fleetNote || '')}">#${top.rank} most flown fighter · about ${U.fmt(top.fleet, 'count')} in service</span>` : ''}
             </div>
             <h1>${esc(a.name)}</h1>
+            ${fam ? `<div class="d-fam">Variant of <a href="#/a/${fam.id}">${esc(fam.name)}</a></div>` : ''}
             <div class="d-sub">${esc(a.role)} · ${esc(a.maker)} · ${esc(a.country)} · first flight ${a.first}</div>
             <div class="d-actions">
               <button class="btn ghost${sel ? ' on' : ''}" id="dcmp" data-cmp="${a.id}" aria-pressed="${sel}">${sel ? '✓ In comparison' : '+ Add to compare'}</button>
@@ -316,6 +343,7 @@
               <p id="extract" class="muted">Loading description…</p>
               ${a.note ? `<p class="note">${esc(a.note)}</p>` : ''}
             </section>
+            ${variantsHTML(fam || a, a)}
             <section class="panel">
               <h2>Flight envelope</h2>
               <p class="sub">Where it can fly: altitude against true airspeed. Move over the chart to read the speed range at any altitude.</p>
@@ -393,6 +421,18 @@
 
     H.envelope.render($('#env'), [{ a, color: 'var(--accent)', label: a.name }]);
     loadDetailMedia(a);
+  }
+
+  function variantsHTML(f, cur) {
+    if (!f.vars) return '';
+    return `<section class="panel" id="variants">
+      <h2>Variants</h2>
+      <p class="sub">${cur === f ? `Figures above are for the ${esc(f.variant)}. Tap a variant for its own figures.` : `Other versions of the ${esc(f.name)}.`}</p>
+      <div class="vars">${f.vars.map(v => `<a class="var-row${v.id === cur.id ? ' on' : ''}" href="#/a/${v.id}">
+        <span class="var-name">${esc(v.variant)}${v.country !== f.country ? ` <small>${esc(v.country)}</small>` : ''}</span>
+        <span class="var-meta">${v.intro || v.first}${v.blurb ? ' · ' + esc(v.blurb) : ''}</span>
+        <span class="var-go" aria-hidden="true">›</span></a>`).join('')}</div>
+    </section>`;
   }
 
   function specPanel(title, rows) {
@@ -542,7 +582,7 @@
     const list = compare.map(id => BY_ID[id]);
     const n = list.length;
     const cols = Math.min(MAX_CMP, n + (n < MAX_CMP ? 1 : 0));
-    const opts = H.categories.map(c => `<optgroup label="${esc(c.label)}">${ALL.filter(a => a.cats[0] === c.id && !compare.includes(a.id)).map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('')}</optgroup>`).join('');
+    const opts = H.categories.map(c => `<optgroup label="${esc(c.label)}">${ALL.filter(a => a.cats[0] === c.id).map(a => (compare.includes(a.id) ? '' : `<option value="${a.id}">${esc(a.name)}</option>`) + (a.vars || []).filter(v => !compare.includes(v.id)).map(v => `<option value="${v.id}">  – ${esc(v.variant)}</option>`).join('')).join('')}</optgroup>`).join('');
     const addSlot = n < MAX_CMP ? `<div class="cmp-add"><b>Add an aircraft</b><select id="cmp-add" aria-label="Add an aircraft"><option value="">Choose…</option>${opts}</select><a href="#/" class="muted" style="font-size:13px">or browse with photos →</a></div>` : '';
     const head = `<div class="cmp-head" style="grid-template-columns:repeat(${cols}, minmax(0,1fr))">${list.map((a, i) => `
       <div class="cmp-col" style="--c:${SERIES[i]}">
@@ -706,7 +746,7 @@
   /* ================= boot ================= */
   async function loadThumbs() {
     try {
-      S.thumbs = await W.thumbs(ALL.map(a => a.wiki), 500);
+      S.thumbs = await W.thumbs([...new Set(ALL.concat(VARS).map(a => a.wiki))], 500);
     } catch (e) { return; }
     // Fill in images on the current view without a full re-render.
     document.querySelectorAll('.card[data-id]').forEach(card => {
