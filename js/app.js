@@ -109,7 +109,7 @@
   function openPicker(f) {
     openSheet(`Which ${f.name} model?`, `<p class="muted" style="margin:0 0 10px">Models fly differently, so pick one to compare.</p><div class="vars">${f.vars.map(v => {
       const on = compare.includes(v.id);
-      return `<button class="var-row${on ? ' on' : ''}" data-pickid="${v.id}"><span class="var-name">${esc(v.variant)}${v.popular ? ' <small>most common</small>' : ''}</span><span class="var-meta">${on ? 'In comparison · tap to remove' : (v.intro || v.first) + (v.blurb ? ' · ' + esc(v.blurb) : '')}</span><span class="var-go" aria-hidden="true">${on ? '✓' : '+'}</span></button>`;
+      return `<button class="var-row${on ? ' on' : ''}" data-pickid="${v.id}"><span class="var-name">${esc(v.variant)}${v.popular ? ` <small>${esc(v.popLabel || 'most common')}</small>` : ''}</span><span class="var-meta">${on ? 'In comparison · tap to remove' : (v.intro || v.first) + (v.blurb ? ' · ' + esc(v.blurb) : '')}</span><span class="var-go" aria-hidden="true">${on ? '✓' : '+'}</span></button>`;
     }).join('')}</div>`);
   }
   function syncCmp() {
@@ -144,15 +144,44 @@
   }
 
   /* ---------- header ---------- */
+  const filtering = () => S.cat !== 'all' || !!S.q || S.status !== 'all' || S.country !== 'all';
   function updateNav() {
     const r = route().name;
+    const atHome = r === 'browse' && !filtering();
+    $('#nav-back').hidden = atHome;
+    $('#nav-home').hidden = atHome;
+    document.querySelector('.top').classList.toggle('deep', !atHome);
     $('#nav-browse').classList.toggle('on', r === 'browse');
     $('#nav-compare').classList.toggle('on', r === 'compare');
     $('#nav-compare').innerHTML = 'Compare' + (compare.length ? `<span class="pill">${compare.length}</span>` : '');
     document.querySelectorAll('#units button').forEach(b => b.classList.toggle('on', b.dataset.u === U.system));
   }
 
+  /* Back: one step back inside the app (history depth kept in history.state), else clear browse filters, else home. */
+  let depth = 0;
+  function trackDepth() {
+    const st = history.state;
+    if (!st || typeof st.d !== 'number') { try { history.replaceState({ d: depth + 1 }, ''); } catch (e) {} depth++; }
+    else depth = st.d;
+  }
+  function goHome() {
+    S.cat = 'all'; S.q = ''; S.status = 'all'; S.country = 'all'; S.scroll = 0;
+    if (route().name === 'browse') { render(true); window.scrollTo(0, 0); }
+    else location.hash = '#/';
+  }
+  function goBack() {
+    if (depth > 0) history.back();
+    else if (route().name === 'browse') goHome();
+    else location.hash = '#/';
+  }
+
   function setupHeader() {
+    try { if (!history.state || typeof history.state.d !== 'number') history.replaceState({ d: 0 }, ''); else depth = history.state.d; } catch (e) {}
+    $('#nav-back').addEventListener('click', () => {
+      if (route().name === 'browse' && filtering() && depth === 0) return goHome();
+      goBack();
+    });
+    $('#nav-home').addEventListener('click', goHome);
     $('#units').addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
       U.set(b.dataset.u); updateNav(); render(true);
@@ -340,6 +369,7 @@
   function renderGrid() {
     const grid = $('#grid');
     if (!grid) return;
+    updateNav();
     const list = filtered();
     $('#count').textContent = list.length === 1 ? '1 aircraft' : list.length + ' aircraft';
     grid.innerHTML = list.length ? list.map(cardHTML).join('') : '<div class="empty">No aircraft match. Try a different search or category.</div>';
@@ -382,7 +412,7 @@
               ${top ? `<span class="tag rank" title="${esc(top.fleetNote || '')}">#${top.rank} ${top.kind === 'drone' ? 'most popular drone' : 'most flown fighter'}${top.fleet ? ` · about ${U.fmt(top.fleet, 'count')} in service` : ''}</span>` : ''}
             </div>
             <h1>${esc(fam ? fam.name : a.name)}</h1>
-            ${fam ? `<div class="models" aria-label="Model">${fam.vars.map(v => `<a class="model${v.id === a.id ? ' on' : ''}" href="#/a/${v.id}"${v.id === a.id ? ' aria-current="page"' : ''}>${esc(v.variant)}${v.popular ? ' <small>most common</small>' : ''}</a>`).join('')}</div>` : ''}
+            ${fam ? `<div class="models" aria-label="Model">${fam.vars.map(v => `<a class="model${v.id === a.id ? ' on' : ''}" href="#/a/${v.id}"${v.id === a.id ? ' aria-current="page"' : ''}>${esc(v.variant)}${v.popular ? ` <small>${esc(v.popLabel || 'most common')}</small>` : ''}</a>`).join('')}</div>` : ''}
             <div class="d-sub">${esc(a.role)} · ${esc(a.maker)} · ${esc(a.country)} · first flight ${a.first}</div>
             <div class="d-actions">
               <button class="btn ghost${sel ? ' on' : ''}" id="dcmp" data-cmp="${a.id}" aria-pressed="${sel}">${cmpLabel(a, sel)}</button>
@@ -805,7 +835,7 @@
       const cat = t.closest('[data-cat]');
       if (cat) {
         S.cat = cat.dataset.cat;
-        renderBrowse($('#view'));
+        renderBrowse($('#view')); updateNav();
         const chips = $('#chips');
         if (chips && window.scrollY > chips.offsetTop) window.scrollTo(0, $('#hero').offsetTop + $('#hero').offsetHeight - 50);
         const on = chips && chips.querySelector('.chip.on');
@@ -836,7 +866,7 @@
   }
 
   window.addEventListener('scroll', () => { if (route().name === 'browse') S.scroll = window.scrollY; }, { passive: true });
-  window.addEventListener('hashchange', () => render());
+  window.addEventListener('hashchange', () => { trackDepth(); render(); });
   setupHeader();
   setupLightbox();
   setupClicks();

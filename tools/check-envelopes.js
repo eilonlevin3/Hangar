@@ -7,7 +7,7 @@ const path = require('path');
 global.window = global;
 global.localStorage = { getItem: () => null, setItem() {} };
 const root = path.join(__dirname, '..');
-for (const f of ['data.js', 'variants.js', 'drone-variants.js', 'variant-perf.js', 'units.js', 'envelope.js']) {
+for (const f of ['data.js', 'variants.js', 'drone-variants.js', 'civil-variants.js', 'variant-perf.js', 'units.js', 'envelope.js']) {
   const file = path.join(root, 'js', f);
   if (fs.existsSync(file)) eval(fs.readFileSync(file, 'utf8'));
 }

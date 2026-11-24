@@ -394,3 +394,12 @@ footer.foot { color: var(--muted); font-size: 12.5px; padding: 30px 0 120px; bor
 .sheet-head h3 { margin: 0; font-size: 17px; }
 .sheet-x { border: 0; background: var(--surface-2); color: var(--text); width: 32px; height: 32px; border-radius: 50%; font-size: 20px; line-height: 1; cursor: pointer; }
 button.var-row { width: 100%; text-align: left; font: inherit; cursor: pointer; }
+
+/* ---------- back / home buttons ---------- */
+.nav-ic[hidden] { display: none; }
+.nav-ic { flex: none; color: var(--text); }
+.top .wrap:has(.nav-ic:not([hidden])) { gap: 8px; }
+@media (max-width: 480px) {
+  .top.deep .brand { font-size: 0; gap: 0; }
+  .top.deep .brand svg { width: 24px; height: 24px; }
+}

@@ -44,6 +44,7 @@ The owner works on this from an iPhone through Telegram. Do this:
 | `js/app.js` | Views: browse, detail (`#/a/<id>`), compare (`#/compare` or `#/compare/id1,id2,id3`), lightbox, tray. |
 | `css/app.css` | All styles. Colour tokens on `:root`; dark is the default theme (`data-theme`). |
 | `js/drone-variants.js` | Drone models (MQ-9A/ER/B, RQ-4/Triton, Hermes 900/StarLiner/HFE...), same format as variants.js with inline `est`. |
+| `js/civil-variants.js` | Bombardier family models (CRJ, Dash 8, A220/CSeries, Global, Challenger 300/600, Learjet, CL-215/415). Optional `popLabel` replaces the "most common" tag on the default model (e.g. "flagship"). |
 | `tools/check-envelopes.js` | `node tools/check-envelopes.js`: checks every aircraft and model (cruise and max-speed points inside the envelope, basic consistency). **Run it before every push**; it must report 0 problems. |
 | `sw.js` | Service worker: network-first app shell. |
 
@@ -76,3 +77,5 @@ Use the variant named in `variant` consistently. Check the article title opens o
 - Drones are split into two categories (owner, 2026-11-24): `male` "MALE drones" (medium/high-altitude long-endurance, incl. Global Hawk) and `smalluav` "Smaller drones & quadcopters" (hand-launched, loitering munitions, camera quadcopters). At least 15 in each.
 - Drones: the top 20 by popularity get a "#N drone" badge (`HANGAR.topDrones` in variants.js, 2026-11-24).
 - Estimates (owner, 2026-11-24): any figure that is assumed rather than published gets a * that opens a sheet explaining the assumption. Keep doing this for new data.
+- Bombardier (owner, 2026-11-24): every Bombardier-built family has its own models (`js/civil-variants.js`); searching "Bombardier" lists them all. The CL-415 water bomber sits in "Military transport & tankers" (closest category).
+- Header back / home buttons (owner, 2026-11-24): back goes one step back inside the app (depth kept in `history.state.d`), or clears browse filters; home clears filters and goes to the start page. Both are hidden on the unfiltered start page; on narrow phones the "Hangar" word hides while they show.
