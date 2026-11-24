@@ -114,22 +114,27 @@
     g += `<text class="axis-label" x="${ml + pw / 2}" y="${Hh - 6}" text-anchor="middle">True airspeed (${U.unit('speed')})</text>`;
     g += `<text class="axis-label" transform="translate(14 ${mt + ph / 2}) rotate(-90)" text-anchor="middle">Altitude (${U.unit('alt')})</text>`;
 
-    // Mach 1 reference line wherever any part of it falls inside the plot, even if no envelope
-    // reaches it (owner, 2026-11-24). The axes are not widened for it; the line is clipped instead.
-    const machAt = [];
-    for (let i = 0; i <= 120; i++) { const h = hTopM * i / 120; machAt.push({ h, v: U.isa(h).a }); }
-    const inside = machAt.filter(q => q.v <= vTopM);
-    if (inside.length) {
-      const cid = 'mclip' + Math.random().toString(36).slice(2, 8);
-      g += `<clipPath id="${cid}"><rect x="${ml}" y="${mt}" width="${pw}" height="${ph}"/></clipPath>`;
+    // Mach 1, 2 and 3 reference lines wherever any part falls inside the plot, even if no envelope
+    // reaches them (owner, 2026-11-24: Mach 1; Mach 2 and 3 added the same day). The axes are not
+    // widened for them; the lines are clipped instead, so slow aircraft show none of them.
+    let cid = null;
+    [1, 2, 3].forEach(n => {
+      const machAt = [];
+      for (let i = 0; i <= 120; i++) { const h = hTopM * i / 120; machAt.push({ h, v: n * U.isa(h).a }); }
+      const inside = machAt.filter(q => q.v <= vTopM);
+      if (!inside.length) return;
+      if (!cid) {
+        cid = 'mclip' + Math.random().toString(36).slice(2, 8);
+        g += `<clipPath id="${cid}"><rect x="${ml}" y="${mt}" width="${pw}" height="${ph}"/></clipPath>`;
+      }
       const d = machAt.map((q, i) => (i ? 'L' : 'M') + x(q.v).toFixed(1) + ' ' + y(q.h).toFixed(1)).join('');
       g += `<path class="mach" clip-path="url(#${cid})" d="${d}"/>`;
       // Label at a visible point: high up if possible, else the lowest visible point. Keep it inside the plot.
       const pick = inside.filter(q => q.h <= Math.min(hTopM * 0.92, 30000));
       const q = pick.length ? pick[pick.length - 1] : inside[0];
       const lx = Math.min(x(q.v) + 5, ml + pw - 44);
-      g += `<text class="mach-label" x="${lx}" y="${Math.max(mt + 12, y(q.h) + 4)}">Mach 1</text>`;
-    }
+      g += `<text class="mach-label" x="${lx}" y="${Math.max(mt + 12, y(q.h) + 4)}">Mach ${n}</text>`;
+    });
 
     // Envelopes
     models.forEach((s, i) => {
