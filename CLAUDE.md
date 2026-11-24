@@ -1,0 +1,68 @@
+# Hangar: instructions for Claude (including the Telegram bot session)
+
+Hangar is the owner's aircraft explorer app: browse aircraft by category with photos, open a detail page
+(specs, modeled flight envelope, runway, range), and compare up to three side by side.
+Started 2026-11-23.
+
+- Repo: `C:\Repos\Hangar`, GitHub `eilonlevin3/Hangar` (public), branch `main`.
+- Live: https://eilonlevin3.github.io/Hangar/ (GitHub Pages from `main`, root). A push to `main` goes live in about a minute.
+- No build step, no Node. Vanilla JS with classic `<script>` tags. Python only for the local server.
+- Local run: `start.bat` (http://localhost:8770/).
+
+## If you are the Telegram bot
+
+The owner works on this from an iPhone through Telegram. Do this:
+
+1. Read this file and `README.md` before changing anything.
+2. The owner writes in short messages, sometimes with typos. Confirm what you understood in one line, then do it.
+3. After each change: bump `?v=N` on every asset link in `index.html` that changed, and bump `CACHE` in `sw.js`
+   (`hangar-v1` -> `hangar-v2` ...). Without this the iPhone home-screen app keeps showing the old version.
+4. Commit and push to `main` (the owner has said this project deploys straight from `main`; no debug branch yet).
+   Then reply on Telegram with what changed and the live link. Tell the owner to close and reopen the
+   home-screen app (swipe it away) to get the update.
+5. Screenshots the owner sends are of the live app on the phone. Phone layout matters: check changes at 390 px width.
+6. Walkthroughs for the owner: one screen per message, exact button names, ask for a screenshot back.
+
+### Home-screen setup (send these steps to the owner if asked)
+
+1. On the iPhone open **Safari** (not Chrome) and go to https://eilonlevin3.github.io/Hangar/
+2. Tap the **Share** button (square with an arrow, bottom bar).
+3. Scroll down and tap **Add to Home Screen**.
+4. Leave the name as **Hangar** and tap **Add** (top right).
+5. Open Hangar from the home screen. It opens full screen like an app.
+
+## Files
+
+| File | What it is |
+|---|---|
+| `js/data.js` | The aircraft database (categories + one object per aircraft). Units in the header comment. |
+| `js/units.js` | Metric / aviation unit conversion, number formatting, standard atmosphere (ISA). |
+| `js/wiki.js` | Photos and intro text from the Wikipedia API (`origin=*`), cached in localStorage 14 days. |
+| `js/envelope.js` | Modeled flight envelope and its SVG chart (hover tooltip, Mach 1 line). |
+| `js/app.js` | Views: browse, detail (`#/a/<id>`), compare (`#/compare` or `#/compare/id1,id2,id3`), lightbox, tray. |
+| `css/app.css` | All styles. Colour tokens on `:root`; dark is the default theme (`data-theme`). |
+| `sw.js` | Service worker: network-first app shell. |
+
+## Adding an aircraft
+
+Add an object to `HANGAR.aircraft` in `js/data.js`. Required: `id` (unique, short), `name`, `variant`, `maker`,
+`country`, `cats` (category ids; first one is the primary), `role`, `wiki` (exact English Wikipedia article title
+with underscores; photos come from it), `first`, `intro`, `status` (`Active` | `Limited` | `Retired`), `vmax`,
+`ceiling`, `vstall` (0 for helicopters/VTOL), `mtow`. Fill everything else you can from the Wikipedia specs box.
+Use the variant named in `variant` consistently. Check the article title opens on Wikipedia, or the card has no photo.
+
+## Decisions so far
+
+- Figures are approximate published values; the footer and envelope panel say so. Do not present them as exact.
+- Flight envelopes are **modeled** (stall speed / sqrt(density ratio) on the left, max speed profile on the right,
+  meeting at the ceiling). They are illustrations, not flight-manual data. Keep the wording that says this.
+- Photos are not copied into the repo. They load from Wikimedia Commons with author and licence shown in the lightbox.
+- Compare holds at most 3 aircraft; series colours are fixed slots (blue, orange, aqua) validated for colour-blind use.
+- Dark theme is the default (Chrome's forced dark mode on the laptop greys out a light page).
+- Units: "Metric" (km/h, m, km, kg) or "kt / ft" (knots, feet, nautical miles, pounds), saved per device.
+
+## Ideas not built yet (ask the owner before starting)
+
+- More aircraft (Mirage 2000, Kfir, Lavi, F-16I Sufa, Boeing 777X, A321XLR, Bell 206, Antonov An-2, Zeppelin...).
+- Favourites list, "random aircraft" button, quiz mode.
+- Silhouette size comparison (overlay outlines to scale).
