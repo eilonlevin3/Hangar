@@ -40,7 +40,7 @@ The owner works on this from an iPhone through Telegram. Do this:
 | `js/variant-perf.js` | `HANGAR.variantPerf`: per-model flight figures merged over the variants. `est[field]` = why a figure is an estimate (shown as a tappable *), `envNote` = text under the envelope, `hoverAlt` = STOVL hover height. |
 | `js/units.js` | Metric / aviation unit conversion, number formatting, standard atmosphere (ISA). |
 | `js/wiki.js` | Photos and intro text from the Wikipedia API (`origin=*`), cached in localStorage 14 days. |
-| `js/envelope.js` | Modeled flight envelope and its SVG chart (hover tooltip, Mach 1 line). |
+| `js/envelope.js` | Modeled flight envelope and its SVG chart (hover tooltip, Mach 1, 2 and 3 lines where they fall inside the plot). |
 | `js/app.js` | Views: browse, detail (`#/a/<id>`), compare (`#/compare` or `#/compare/id1,id2,id3`), lightbox, tray. |
 | `css/app.css` | All styles. Colour tokens on `:root`; dark is the default theme (`data-theme`). |
 | `js/drone-variants.js` | Drone models (MQ-9A/ER/B, RQ-4/Triton, Hermes 900/StarLiner/HFE...), same format as variants.js with inline `est`. |
