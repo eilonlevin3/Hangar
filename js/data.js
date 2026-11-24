@@ -19,6 +19,7 @@ HANGAR.categories = [
   { id: 'transport',  label: 'Military transport & tankers', blurb: 'Airlifters, tankers, tiltrotors' },
   { id: 'narrowbody', label: 'Airliners: single aisle',  blurb: 'Short and medium haul jets' },
   { id: 'widebody',   label: 'Airliners: twin aisle',    blurb: 'Long-haul wide-bodies' },
+  { id: 'freighter',  label: 'Freighters',               blurb: 'Wide-body cargo jets' },
   { id: 'regional',   label: 'Regional airliners',       blurb: 'Regional jets and turboprops' },
   { id: 'bizjet',     label: 'Business jets',            blurb: 'From light jets to ultra long range' },
   { id: 'private',    label: 'Private & general aviation', blurb: 'Pistons, turboprops, personal jets' },
@@ -747,6 +748,35 @@ HANGAR.aircraft = [
     vmax: 945, cruise: 903, cruiseAlt: 12000, vstall: 225, ceiling: 13100,
     range: 15370, takeoff: 2600, landing: 2000, cost: 317,
     note: 'The ultra-long-range version flies Singapore–New York non-stop, about 18 hours.' },
+
+  /* ---------------- Freighters ---------------- */
+  { id: 'b77f', name: 'Boeing 777F', variant: '777F', maker: 'Boeing', country: 'USA', cats: ['freighter'], role: 'Wide-body freighter', wiki: 'Boeing_777',
+    photo: 'Emirates 777F A6-EFE at SYD (25085109904).jpg',
+    first: 2008, intro: 2009, status: 'Active', built: 290, crew: 2, pax: 0,
+    len: 63.73, span: 64.8, height: 18.6, wing: 436.8, empty: 144379, mtow: 347815, payload: 102010, fuel: 145538,
+    engN: 2, engine: 'GE90-110B1 turbofan', thrust: 489,
+    vmax: 950, cruise: 892, cruiseAlt: 11000, vstall: 245, ceiling: 13140,
+    range: 9200, takeoff: 3050, landing: 1900, cost: 352,
+    note: 'The freighter version of the 777-200LR: about 102 tonnes of cargo over 9,200 km, loaded through a large main-deck door behind the left wing. The best-selling wide-body freighter of its generation.' },
+
+  { id: 'a35f', name: 'Airbus A350F', variant: 'A350F', maker: 'Airbus', country: 'Europe', cats: ['freighter'], role: 'Wide-body freighter', wiki: 'Airbus_A350',
+    photo: 'Virgin Atlantic Airbus A350-1041XWB G-VLUX (Red Velvet) approaching JFK Airport.jpg', photoNote: 'Photo: the A350-1000 passenger jet the A350F is based on. No free photo of the freighter exists yet.',
+    first: 2026, intro: 2027, status: 'Development', built: 0, crew: 2, pax: 0,
+    len: 70.8, span: 64.75, height: 17.08, wing: 464.3, mtow: 319000, payload: 111000, fuel: 127000,
+    engN: 2, engine: 'Rolls-Royce Trent XWB-97 turbofan', thrust: 431,
+    vmax: 945, cruise: 903, cruiseAlt: 12000, vstall: 235, ceiling: 13100,
+    range: 8700, takeoff: 2800,
+    est: {
+      first: 'Planned: Airbus expected the first flight around 2026; the date may have moved.',
+      intro: 'Planned: Airbus targets entry into service in the second half of 2027 (delayed from 2026).',
+      fuel: 'Estimated: Airbus does not publish the freighter\'s fuel capacity; the A350-1000\'s (about 159,000 L) is assumed, since it shares the wing.',
+      ceiling: 'Estimated: the passenger A350\'s published ceiling is assumed.',
+      takeoff: 'Estimated: no published figure yet; similar to a heavy A350-1000.',
+      range: 'Airbus target with the full 111 t payload, not yet a flown figure.',
+      payload: 'Airbus target, not yet a flown figure.',
+      mtow: 'Airbus target, not yet a flown figure.'
+    },
+    note: 'Airbus\'s first all-new wide-body freighter, built on the A350-1000 with a shorter fuselage and a big main-deck cargo door. Designed to carry 111 tonnes, about 9 more than the 777F. Figures are Airbus targets until it enters service.' },
 
   { id: 'a333', name: 'Airbus A330-300', variant: 'A330-300', maker: 'Airbus', country: 'Europe', cats: ['widebody'], role: 'Wide-body airliner', wiki: 'Airbus_A330',
     first: 1992, intro: 1994, status: 'Active', built: 780, crew: 2, pax: 440, paxNote: '277 in two classes, 440 max',

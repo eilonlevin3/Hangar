@@ -28,7 +28,7 @@
   const CAT = Object.fromEntries(H.categories.map(c => [c.id, c]));
   const MAX_CMP = 3;
   const SERIES = ['var(--s1)', 'var(--s2)', 'var(--s3)'];
-  const FEATURE = { fighter: 'f22', bomber: 'b2', attack: 'a10', recon: 'sr71', male: 'mq9', smalluav: 'mavic3', transport: 'c17', narrowbody: 'a320neo', widebody: 'a380', regional: 'atr72', bizjet: 'g650', private: 'sr22', helicopter: 'ah64', trainer: 't38', warbird: 'spitfire', record: 'concorde' };
+  const FEATURE = { fighter: 'f22', bomber: 'b2', attack: 'a10', recon: 'sr71', male: 'mq9', smalluav: 'mavic3', transport: 'c17', freighter: 'b77f', narrowbody: 'a320neo', widebody: 'a380', regional: 'atr72', bizjet: 'g650', private: 'sr22', helicopter: 'ah64', trainer: 't38', warbird: 'spitfire', record: 'concorde' };
   const ROUTES = [
     ['London → Paris', 344], ['Tel Aviv → Athens', 1200], ['Tel Aviv → London', 3570], ['London → New York', 5570],
     ['Tel Aviv → New York', 9130], ['Los Angeles → Sydney', 12050], ['Singapore → New York', 15350]
@@ -60,7 +60,9 @@
 
   /* ---------- small helpers ---------- */
   function catLabel(a) { return CAT[a.cats[0]] ? CAT[a.cats[0]].label : ''; }
-  function thumb(a) { return S.thumbs[a.wiki] || null; }
+  function thumb(a) { return a.photo ? W.filePath(a.photo, 500) : (S.thumbs[a.wiki] || null); }
+  const STATUS = { Active: 'In service', Limited: 'Limited service', Retired: 'Retired', Development: 'In development' };
+  const statusText = s => STATUS[s] || s;
   function imgTag(src, alt) {
     return src ? `<img src="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async" onload="this.classList.add('ok')" onerror="this.remove()">` : '';
   }
@@ -82,7 +84,7 @@
   const FIELD = { 'Top speed': 'vmax', 'Top speed (Mach)': 'vmax', 'Top speed at sea level': 'vmaxSL', 'Cruise': 'cruise', 'Cruise speed': 'cruise',
     'Stall speed (clean, est.)': 'vstall', 'Ceiling': 'ceiling', 'Service ceiling': 'ceiling', 'Rate of climb': 'climb', 'g limits': 'gmax', 'Max g': 'gmax',
     'Range': 'range', 'Ferry range': 'ferry', 'Combat radius': 'radius', 'Empty weight': 'empty', 'Max take-off weight': 'mtow', 'Internal fuel': 'fuel',
-    'Max payload / weapons': 'payload', 'Thrust per engine': 'thrust', 'Total thrust': 'thrust' };
+    'Max payload / weapons': 'payload', 'First flight': 'first', 'Entered service': 'intro', 'Take-off distance': 'takeoff', 'Thrust per engine': 'thrust', 'Total thrust': 'thrust' };
   function mark(a, label) {
     const f = FIELD[label];
     return a && f && a.est && a.est[f] ? `<button class="est" data-est="${a.id}|${f}" aria-label="Estimated figure: why?">*</button>` : '';
@@ -283,7 +285,7 @@
     const sel = inCompare(a.id);
     const third = a.pax > 0 ? ['Seats', String(a.pax)] : ['Max weight', U.fmt(a.mtow, 'mass')];
     return `<article class="card${sel ? ' sel' : ''}" data-id="${a.id}">
-      <div class="card-img ph">${PLANE}${imgTag(thumb(a), a.name)}${a.status !== 'Active' ? `<span class="badge">${a.status === 'Limited' ? 'Limited service' : 'Retired'}</span>` : ''}${TOP[a.id] ? `<span class="badge rank">#${TOP[a.id].rank} ${TOP[a.id].kind}</span>` : ''}</div>
+      <div class="card-img ph">${PLANE}${imgTag(thumb(a), a.name)}${a.status !== 'Active' ? `<span class="badge">${statusText(a.status)}</span>` : ''}${TOP[a.id] ? `<span class="badge rank">#${TOP[a.id].rank} ${TOP[a.id].kind}</span>` : ''}</div>
       <button class="cmp-btn" data-cmp="${a.id}" aria-pressed="${sel}">${sel ? '✓ Comparing' : '+ Compare'}</button>
       <div class="card-body">
         <div class="card-cat">${esc(catLabel(a))} · ${esc(a.country)}</div>
@@ -333,7 +335,7 @@
             ${[['popular', 'Top 10 first'], ['name', 'Name A–Z'], ['speed', 'Fastest'], ['range', 'Longest range'], ['ceiling', 'Highest ceiling'], ['mtow', 'Heaviest'], ['pax', 'Most seats'], ['newest', 'Newest first flight'], ['oldest', 'Oldest first flight']].map(([v, l]) => `<option value="${v}"${S.sort === v ? ' selected' : ''}>${l}</option>`).join('')}
           </select>
           <select id="status" aria-label="Status">
-            ${[['all', 'Any status'], ['Active', 'In service'], ['Limited', 'Limited service'], ['Retired', 'Retired']].map(([v, l]) => `<option value="${v}"${S.status === v ? ' selected' : ''}>${l}</option>`).join('')}
+            ${[['all', 'Any status'], ['Active', 'In service'], ['Limited', 'Limited service'], ['Development', 'In development'], ['Retired', 'Retired']].map(([v, l]) => `<option value="${v}"${S.status === v ? ' selected' : ''}>${l}</option>`).join('')}
           </select>
           <select id="country" aria-label="Country">
             <option value="all">Any country</option>
@@ -359,8 +361,9 @@
     if (!hero) return;
     try {
       const info = await W.info(a.wiki);
-      if (info.image && hero.isConnected) {
-        hero.style.backgroundImage = `url('${info.image}')`;
+      const img = a.photo ? W.filePath(a.photo, 1280) : info.image;
+      if (img && hero.isConnected) {
+        hero.style.backgroundImage = `url('${img}')`;
         hero.insertAdjacentHTML('beforeend', `<a class="hero-credit" href="#/a/${a.id}">${esc(a.name)}</a>`);
       }
     } catch (e) {}
@@ -408,7 +411,7 @@
           <div class="d-hero-inner">
             <div class="tags">
               ${a.cats.map(c => `<a class="tag" href="#/" data-gocat="${c}">${esc(CAT[c].label)}</a>`).join('')}
-              <span class="tag status-${a.status}">${a.status === 'Active' ? 'In service' : a.status === 'Limited' ? 'Limited service' : 'Retired'}</span>
+              <span class="tag status-${a.status}">${statusText(a.status)}</span>
               ${top ? `<span class="tag rank" title="${esc(top.fleetNote || '')}">#${top.rank} ${top.kind === 'drone' ? 'most popular drone' : 'most flown fighter'}${top.fleet ? ` · about ${U.fmt(top.fleet, 'count')} in service` : ''}</span>` : ''}
             </div>
             <h1>${esc(fam ? fam.name : a.name)}</h1>
@@ -497,7 +500,7 @@
             ${specPanel('Service & production', [
               ['First flight', String(a.first)],
               ['Entered service', String(a.intro)],
-              ['Status', a.status === 'Active' ? 'In service' : a.status === 'Limited' ? 'Limited service' : 'Retired'],
+              ['Status', statusText(a.status)],
               ['Number built', a.built ? U.fmt(a.built, 'count') + (a.status === 'Active' ? '+' : '') : '—'],
               ['Crew', crewText(a)],
               ['Passengers / troops', a.pax ? (a.paxNote || String(a.pax)) : '—'],
@@ -603,7 +606,8 @@
     try { info = await W.info(a.wiki); } catch (e) {}
     if (!hero.isConnected) return;
     if (info) {
-      if (info.image) hero.insertAdjacentHTML('afterbegin', `<img src="${esc(info.image)}" alt="${esc(a.name)}" onload="this.classList.add('ok')">`);
+      const img = a.photo ? W.filePath(a.photo, 1280) : info.image;
+      if (img) hero.insertAdjacentHTML('afterbegin', `<img src="${esc(img)}" alt="${esc(a.name)}" onload="this.classList.add('ok')">`);
       $('#extract').textContent = info.extract || '';
       $('#extract').classList.remove('muted');
       if (info.url) $('#dwiki').href = info.url;
@@ -611,9 +615,12 @@
       $('#extract').textContent = 'Description unavailable offline.';
     }
     try { gal = await W.gallery(a.wiki); } catch (e) {}
+    if (a.photo) {  // the aircraft's own photo first (its article is shared with other versions)
+      try { const own = await W.file(a.photo); if (own) { if (a.photoNote) own.caption = a.photoNote; gal = [own].concat(gal.filter(g => g.name !== own.name)); } } catch (e) {}
+    }
     if (!hero.isConnected) return;
     // Lead image first.
-    if (info && info.imageName) {
+    if (!a.photo && info && info.imageName) {
       const i = gal.findIndex(g => g.name.replace(/ /g, '_') === info.imageName.replace(/ /g, '_'));
       if (i > 0) gal.unshift(gal.splice(i, 1)[0]);
     }
@@ -626,7 +633,7 @@
     const show = gal.slice(0, 14);
     strip.innerHTML = show.map((g, i) => `<button class="ph" data-lb="${i}" aria-label="Open photo ${i + 1}">${PLANE}<img src="${esc(W.resize(g.src, 330))}" alt="" loading="lazy" onload="this.classList.add('ok')" onerror="this.closest('button').remove()"></button>`).join('') +
       (gal.length > show.length ? `<button class="more" data-lb="${show.length}">+${gal.length - show.length} more</button>` : '');
-    $('#strip-note').textContent = `${gal.length} photos from Wikimedia Commons. Tap one to view it full size with its credit.`;
+    $('#strip-note').textContent = (a.photoNote ? a.photoNote + ' ' : '') + `${gal.length} photos from Wikimedia Commons. Tap one to view it full size with its credit.`;
     strip.onclick = e => { const b = e.target.closest('[data-lb]'); if (b) openLightbox(gal, +b.dataset.lb); };
     $('#dphotos').onclick = () => openLightbox(gal, 0);
   }
@@ -676,7 +683,7 @@
       ['Crew', a => null, null, null, a => crewText(a)],
       ['Seats / troops', a => a.pax || null, 'count', 'hi'],
       ['First flight', a => a.first, 'year', null],
-      ['Status', a => null, null, null, a => (a.status === 'Active' ? 'In service' : a.status === 'Limited' ? 'Limited service' : 'Retired')],
+      ['Status', a => null, null, null, a => statusText(a.status)],
       ['Number built', a => a.built, 'count', 'hi'],
       ['Approx. unit cost', a => a.cost, 'cost', null]
     ]]

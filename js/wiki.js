@@ -112,6 +112,28 @@
       return out;
     },
 
+    /* One named Commons file, in the gallery's format (for aircraft with their own photo). */
+    async file(name) {
+      const key = 'hangar-file:' + name;
+      const c = cacheGet(key);
+      if (c) return c;
+      const data = await query({ action: 'query', titles: 'File:' + name, prop: 'imageinfo', iiprop: 'url|extmetadata|size', iiurlwidth: '1280', iiextmetadatafilter: 'Artist|LicenseShortName|ImageDescription' });
+      const p = (data.query && data.query.pages && data.query.pages[0]) || {};
+      const ii = p.imageinfo && p.imageinfo[0];
+      if (!ii) return null;
+      const m = ii.extmetadata || {};
+      const d = { name, src: ii.thumburl || ii.url, page: ii.descriptionurl, w: ii.thumbwidth || ii.width, h: ii.thumbheight || ii.height,
+        artist: stripHtml(m.Artist && m.Artist.value).slice(0, 120), license: stripHtml(m.LicenseShortName && m.LicenseShortName.value),
+        caption: stripHtml(m.ImageDescription && m.ImageDescription.value).slice(0, 200) };
+      cacheSet(key, d);
+      return d;
+    },
+
+    /* A Commons file at a given width (redirects to the image). */
+    filePath(name, width) {
+      return 'https://commons.wikimedia.org/wiki/Special:FilePath/' + encodeURIComponent(name.replace(/ /g, '_')) + '?width=' + width;
+    },
+
     /* A smaller version of a Commons thumbnail URL. */
     resize(url, width) {
       if (!url) return url;

@@ -187,6 +187,7 @@ button { cursor: pointer; }
 .tag.status-Active { background: rgba(37, 160, 90, .85); }
 .tag.status-Retired { background: rgba(120, 120, 120, .8); }
 .tag.status-Limited { background: rgba(200, 130, 20, .85); }
+.tag.status-Development { background: rgba(60, 120, 220, .85); }
 .d-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
 .btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 8px 14px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
