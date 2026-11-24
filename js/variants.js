@@ -22,10 +22,12 @@ HANGAR.top = [
   { id: 'm2000', fleet: 270 }
 ];
 
-/* Top 10 drones, ranked roughly by numbers built and how widely they are used (approx.). */
+/* Top 20 drones, ranked roughly by numbers built and how widely they are used (approx.). */
 HANGAR.topDrones = [
   { id: 'mavic3' }, { id: 'tb2' }, { id: 'mq9' }, { id: 'shahed136' }, { id: 'rq11' },
-  { id: 'mq1' }, { id: 'heron' }, { id: 'hermes450' }, { id: 'rq4' }, { id: 'wingloong2' }
+  { id: 'mq1' }, { id: 'heron' }, { id: 'hermes450' }, { id: 'rq4' }, { id: 'wingloong2' },
+  { id: 'phantom4' }, { id: 'scaneagle' }, { id: 'orlan10' }, { id: 'lancet' }, { id: 'switchblade' },
+  { id: 'mq1c' }, { id: 'hermes900' }, { id: 'eitan' }, { id: 'akinci' }, { id: 'harop' }
 ];
 
 HANGAR.variants = {

@@ -1,6 +1,6 @@
 /* Network-first for the app shell so updates show up immediately; cached copy when offline.
  * Wikipedia API answers and photos are not cached here (the app caches API answers in localStorage). */
-const CACHE = 'hangar-v5';
+const CACHE = 'hangar-v6';
 const SHELL = ['./', 'index.html', 'css/app.css', 'js/data.js', 'js/variants.js', 'js/variant-perf.js', 'js/units.js', 'js/wiki.js', 'js/envelope.js', 'js/app.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png'];
 
 self.addEventListener('install', e => {
@@ -13,7 +13,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   e.respondWith(
-    fetch(e.request).then(r => {
+    fetch(e.request, { cache: 'no-cache' }).then(r => {  // revalidate: skip the browser's HTTP cache so updates show on the first open
       if (r.ok) {
         const copy = r.clone();
         caches.open(CACHE).then(c => c.put(e.request, copy));
