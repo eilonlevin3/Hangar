@@ -21,7 +21,10 @@
         const hh = 0.6 * ceiling;
         return h <= hh ? 0 : (h - hh) / (ceiling - hh) * 0.35 * a.vmax;
       }
-      return vs / Math.sqrt(U.isa(h).sigma);
+      const wing = vs / Math.sqrt(U.isa(h).sigma);
+      // STOVL jets (F-35B): jet-borne hover up to hoverAlt, blending to wing-borne flight over 1 km.
+      if (a.hoverAlt) return h <= a.hoverAlt ? 0 : wing * Math.min(1, (h - a.hoverAlt) / 1000);
+      return wing;
     };
 
     // Highest altitude still flyable aerodynamically (matters for rocket planes).

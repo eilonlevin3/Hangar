@@ -9,7 +9,7 @@
     const vs = (H.variants || {})[a.id];
     if (!vs) return;
     a.vars = vs.map(v => {
-      const o = Object.assign({}, a, v, { id: a.id + '-' + v.key, parent: a.id, name: v.name || v.variant });
+      const o = Object.assign({}, a, v, (H.variantPerf || {})[a.id + '-' + v.key], { id: a.id + '-' + v.key, parent: a.id, name: v.name || v.variant });
       delete o.vars; delete o.key;
       return o;
     });
@@ -38,7 +38,8 @@
   /* ---------- state ---------- */
   const S = { cat: 'all', q: '', sort: 'popular', status: 'all', country: 'all', thumbs: {} };
   let compare = [];
-  try { compare = JSON.parse(localStorage.getItem('hangar-compare') || '[]').filter(id => BY_ID[id]).slice(0, MAX_CMP); } catch (e) {}
+  const cmpOK = id => BY_ID[id] && !BY_ID[id].vars;  // a family (e.g. "F-16") can't be compared, only one of its models
+  try { compare = JSON.parse(localStorage.getItem('hangar-compare') || '[]').filter(cmpOK).slice(0, MAX_CMP); } catch (e) {}
   const saveCompare = () => { try { localStorage.setItem('hangar-compare', JSON.stringify(compare)); } catch (e) {} };
 
   /* ---------- derived numbers ---------- */
@@ -69,14 +70,66 @@
     if (v === undefined) return a.carrier ? (kind === 'takeoff' ? 'Catapult' : 'Arrested') : '—';
     return U.fmt(v, 'runway', { step: 10 });
   }
+  function cmpLabel(a, on) {
+    const what = a.parent ? esc(a.variant) : '';
+    return on ? `✓ ${what ? what + ' in' : 'In'} comparison` : `+ Add ${what ? what + ' ' : ''}to compare`;
+  }
+
+  /* Estimated figures: a * that opens why (variant-perf.js est[field]). */
+  const FIELD = { 'Top speed': 'vmax', 'Top speed (Mach)': 'vmax', 'Top speed at sea level': 'vmaxSL', 'Cruise': 'cruise', 'Cruise speed': 'cruise',
+    'Stall speed (clean, est.)': 'vstall', 'Ceiling': 'ceiling', 'Service ceiling': 'ceiling', 'Rate of climb': 'climb', 'g limits': 'gmax', 'Max g': 'gmax',
+    'Range': 'range', 'Ferry range': 'ferry', 'Combat radius': 'radius', 'Empty weight': 'empty', 'Max take-off weight': 'mtow', 'Internal fuel': 'fuel',
+    'Max payload / weapons': 'payload', 'Thrust per engine': 'thrust', 'Total thrust': 'thrust' };
+  function mark(a, label) {
+    const f = FIELD[label];
+    return a && f && a.est && a.est[f] ? `<button class="est" data-est="${a.id}|${f}" aria-label="Estimated figure: why?">*</button>` : '';
+  }
+
+  /* Bottom sheet for the model picker and the * explanations. */
+  function openSheet(title, html) {
+    let sh = $('#sheet');
+    if (!sh) {
+      sh = document.createElement('div');
+      sh.id = 'sheet'; sh.className = 'sheet';
+      sh.innerHTML = '<div class="sheet-back" data-close></div><div class="sheet-box" role="dialog" aria-modal="true"><div class="sheet-head"><h3></h3><button class="sheet-x" data-close aria-label="Close">×</button></div><div class="sheet-body"></div></div>';
+      document.body.appendChild(sh);
+      sh.addEventListener('click', e => {
+        if (e.target.closest('[data-close]')) { sh.hidden = true; return; }
+        const pk = e.target.closest('[data-pickid]');
+        if (pk) { e.stopPropagation(); toggleCompare(pk.dataset.pickid); syncCmp(); sh.hidden = true; }
+      });
+    }
+    sh.querySelector('h3').textContent = title;
+    sh.querySelector('.sheet-body').innerHTML = html;
+    sh.hidden = false;
+  }
+  function openPicker(f) {
+    openSheet(`Which ${f.name} model?`, `<p class="muted" style="margin:0 0 10px">Models fly differently, so pick one to compare.</p><div class="vars">${f.vars.map(v => {
+      const on = compare.includes(v.id);
+      return `<button class="var-row${on ? ' on' : ''}" data-pickid="${v.id}"><span class="var-name">${esc(v.variant)}${v.popular ? ' <small>most common</small>' : ''}</span><span class="var-meta">${on ? 'In comparison · tap to remove' : (v.intro || v.first) + (v.blurb ? ' · ' + esc(v.blurb) : '')}</span><span class="var-go" aria-hidden="true">${on ? '✓' : '+'}</span></button>`;
+    }).join('')}</div>`);
+  }
+  function syncCmp() {
+    document.querySelectorAll('[data-cmp]').forEach(b => {
+      const id = b.dataset.cmp, on = inCompare(id);
+      b.setAttribute('aria-pressed', on);
+      if (b.id === 'dcmp') { b.innerHTML = cmpLabel(BY_ID[id], on); b.classList.toggle('on', on); }
+      else b.textContent = on ? '✓ Comparing' : '+ Compare';
+      const card = b.closest('.card'); if (card) card.classList.toggle('sel', on);
+    });
+    if (route().name === 'compare') render(true);
+  }
+
   function toast(msg) {
     const t = $('#toast');
     t.textContent = msg; t.hidden = false;
     clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, 2600);
   }
 
+  const inCompare = id => (BY_ID[id] && BY_ID[id].vars ? BY_ID[id].vars.some(v => compare.includes(v.id)) : compare.includes(id));
+
   function toggleCompare(id) {
-    id = real(id);
+    if (!cmpOK(id)) { if (BY_ID[id]) openPicker(BY_ID[id]); return false; }
     const i = compare.indexOf(id);
     if (i >= 0) compare.splice(i, 1);
     else if (compare.length >= MAX_CMP) { toast('You can compare up to 3 aircraft. Remove one first.'); return false; }
@@ -141,7 +194,7 @@
     if (r.name === 'detail') renderDetail(view, BY_ID[r.id]);
     else if (r.name === 'compare') {
       if (r.ids) {
-        const ids = r.ids.split(',').filter(id => BY_ID[id]).map(real).slice(0, MAX_CMP);
+        const ids = r.ids.split(',').filter(cmpOK).slice(0, MAX_CMP);
         if (ids.length) { compare = ids; saveCompare(); }
       }
       renderCompare(view);
@@ -195,7 +248,7 @@
   }
 
   function cardHTML(a) {
-    const sel = compare.includes(real(a.id));
+    const sel = inCompare(a.id);
     const third = a.pax > 0 ? ['Seats', String(a.pax)] : ['Max weight', U.fmt(a.mtow, 'mass')];
     return `<article class="card${sel ? ' sel' : ''}" data-id="${a.id}">
       <div class="card-img ph">${PLANE}${imgTag(thumb(a), a.name)}${a.status !== 'Active' ? `<span class="badge">${a.status === 'Limited' ? 'Limited service' : 'Retired'}</span>` : ''}${TOP[a.id] ? `<span class="badge rank">#${TOP[a.id].rank} fighter</span>` : ''}</div>
@@ -329,7 +382,7 @@
             ${fam ? `<div class="models" aria-label="Model">${fam.vars.map(v => `<a class="model${v.id === a.id ? ' on' : ''}" href="#/a/${v.id}"${v.id === a.id ? ' aria-current="page"' : ''}>${esc(v.variant)}${v.popular ? ' <small>most common</small>' : ''}</a>`).join('')}</div>` : ''}
             <div class="d-sub">${esc(a.role)} · ${esc(a.maker)} · ${esc(a.country)} · first flight ${a.first}</div>
             <div class="d-actions">
-              <button class="btn ghost${sel ? ' on' : ''}" id="dcmp" data-cmp="${a.id}" aria-pressed="${sel}">${sel ? '✓ In comparison' : '+ Add to compare'}</button>
+              <button class="btn ghost${sel ? ' on' : ''}" id="dcmp" data-cmp="${a.id}" aria-pressed="${sel}">${cmpLabel(a, sel)}</button>
               <button class="btn ghost" id="dphotos">Photos</button>
               <a class="btn ghost" id="dwiki" href="https://en.wikipedia.org/wiki/${encodeURIComponent(a.wiki)}" target="_blank" rel="noopener">Wikipedia ↗</a>
             </div>
@@ -338,7 +391,7 @@
         <div class="strip" id="strip" aria-label="Photo gallery"></div>
         <p class="strip-note" id="strip-note"></p>
 
-        <dl class="stats">${tiles.map(t => `<div class="stat"><dt>${t[0]}</dt><dd>${t[1]}<small>${t[2] || '&nbsp;'}</small></dd></div>`).join('')}</dl>
+        <dl class="stats">${tiles.map(t => `<div class="stat"><dt>${t[0]}</dt><dd>${t[1]}${t[1] !== '—' ? mark(a, t[0] === 'Range' ? (a.range ? 'Range' : 'Combat radius') : t[0]) : ''}<small>${t[2] || '&nbsp;'}</small></dd></div>`).join('')}</dl>
 
         <div class="cols">
           <div>
@@ -354,6 +407,7 @@
               <p class="sub">Where it can fly: altitude against true airspeed. Move over the chart to read the speed range at any altitude.</p>
               <div id="env"></div>
               <div class="legend"><span><i class="dot"></i>max speed</span><span><i class="dot hollow"></i>cruise</span><span><i class="dash"></i>speed of sound</span></div>
+              ${envNotes([a])}
               <p class="fine">Modeled from published stall speed, top speed and ceiling using the standard atmosphere. An illustration, not a flight-manual chart.</p>
             </section>
             <section class="panel">
@@ -363,7 +417,7 @@
             </section>
             <section class="panel">
               <h2>Runway needed</h2>
-              <p class="sub">${a.rotor || a.vtol ? 'Takes off and lands vertically; no runway needed.' : 'Distance at maximum weight, against common runway lengths.'}</p>
+              <p class="sub">${a.rotor || (a.vtol && !a.takeoff) ? 'Takes off and lands vertically; no runway needed.' : a.vtol ? 'Short take-off, vertical landing.' : 'Distance at maximum weight, against common runway lengths.'}</p>
               ${runwayHTML([{ a, color: 'var(--accent)' }])}
             </section>
             <section class="panel">
@@ -382,31 +436,31 @@
               ['Service ceiling', U.fmt(a.ceiling, 'alt', { step: 10 })],
               ['Rate of climb', a.climb ? U.fmt(a.climb, 'climb') : '—'],
               ['g limits', a.gmax ? U.fmt(a.gmax, 'g') + (a.gmin ? ' / ' + U.fmt(a.gmin, 'g') : '') : '—']
-            ])}
+            ], a)}
             ${specPanel('Range & endurance', [
               ['Range', a.range ? U.fmt(a.range, 'dist') : '—'],
               ['Ferry range', a.ferry ? U.fmt(a.ferry, 'dist') : '—', a.ferry ? 'with extra tanks, no payload' : ''],
               ['Combat radius', a.radius ? U.fmt(a.radius, 'dist') : '—', a.radius ? 'out and back with a mission load' : ''],
               ['Endurance', end ? U.fmt(end, 'hours') : '—', D.enduranceEst(a) ? 'estimated' : '']
-            ])}
+            ], a)}
             ${specPanel('Weights & fuel', [
               ['Empty weight', U.fmt(a.empty, 'mass', { exact: true })],
               ['Max take-off weight', U.fmt(a.mtow, 'mass', { exact: true })],
               ['Max payload / weapons', a.payload ? U.fmt(a.payload, 'mass', { exact: true }) : '—'],
               ['Internal fuel', a.fuel ? U.fmt(a.fuel, 'mass', { exact: true }) : '—'],
               ['Wing loading', D.wingLoad(a) ? U.fmt(D.wingLoad(a), 'wingload') : '—', 'at max take-off weight']
-            ])}
+            ], a)}
             ${specPanel('Dimensions', [
               ['Length', U.fmt(a.len, 'len')],
               [a.rotor ? 'Main rotor diameter' : 'Wingspan', U.fmt(a.span, 'len')],
               ['Height', U.fmt(a.height, 'len')],
               ['Wing area', a.wing ? U.fmt(a.wing, 'area') : '—']
-            ])}
+            ], a)}
             ${specPanel('Powerplant', [
               ['Engines', `${a.engN || 1} × ${esc(a.engine)}`],
               a.thrust ? ['Thrust per engine', U.fmt(a.thrust, 'thrust') + (a.thrustAB ? ' dry' : ''), a.thrustAB ? U.fmt(a.thrustAB, 'thrust') + ' with afterburner' : ''] : ['Power per engine', U.fmt(a.power, 'power')],
               a.thrust ? ['Thrust-to-weight', U.fmt(D.tw(a), 'ratio'), 'at max take-off weight' + (a.thrustAB ? ', with afterburner' : '')] : ['Power-to-weight', D.pw(a) ? U.fmt(D.pw(a), 'pw') : '—', 'at max take-off weight']
-            ])}
+            ], a)}
             ${specPanel('Service & production', [
               ['First flight', String(a.first)],
               ['Entered service', String(a.intro)],
@@ -415,7 +469,7 @@
               ['Crew', crewText(a)],
               ['Passengers / troops', a.pax ? (a.paxNote || String(a.pax)) : '—'],
               ['Approx. unit cost', a.cost ? U.fmt(a.cost, 'cost') : '—', a.cost ? 'US$, year of purchase varies' : '']
-            ])}
+            ], a)}
           </div>
         </div>
 
@@ -426,6 +480,18 @@
 
     H.envelope.render($('#env'), [{ a, color: 'var(--accent)', label: a.name }]);
     loadDetailMedia(a);
+  }
+
+  const ENV_F = [['vmax', 'top speed'], ['vmaxSL', 'sea-level speed'], ['vstall', 'stall speed'], ['ceiling', 'ceiling']];
+  function envNotes(list) {
+    return list.map(a => {
+      const est = ENV_F.filter(([f]) => a.est && a.est[f]);
+      const who = list.length > 1 ? `<b>${esc(a.name)}:</b> ` : '';
+      const parts = [];
+      if (a.envNote) parts.push(esc(a.envNote));
+      if (est.length) parts.push('Estimated inputs: ' + est.map(([f, l]) => `${l}<button class="est" data-est="${a.id}|${f}" aria-label="Why estimated">*</button>`).join(', ') + '.');
+      return parts.length ? `<p class="env-note">${who}${parts.join(' ')}</p>` : '';
+    }).join('');
   }
 
   function variantsHTML(f, cur) {
@@ -440,9 +506,9 @@
     </section>`;
   }
 
-  function specPanel(title, rows) {
+  function specPanel(title, rows, a) {
     return `<section class="panel"><h2>${title}</h2><table class="specs"><tbody>${rows.map(r =>
-      `<tr><th>${r[0]}</th><td>${r[1]}${r[2] ? `<span class="hint">${r[2]}</span>` : ''}</td></tr>`).join('')}</tbody></table></section>`;
+      `<tr><th>${r[0]}</th><td>${r[1]}${r[1] !== '—' ? mark(a, r[0]) : ''}${r[2] ? `<span class="hint">${r[2]}</span>` : ''}</td></tr>`).join('')}</tbody></table></section>`;
   }
 
   const RANK_METRICS = [
@@ -608,6 +674,7 @@
       body += `<section class="panel"><h2>Flight envelopes</h2><p class="sub">Altitude against true airspeed, overlaid. Move over the chart to read each aircraft's speed range at that altitude.</p>
         <div id="env"></div>
         <div class="legend">${list.map((a, i) => `<span><i class="sw" style="background:${SERIES[i]}"></i>${esc(a.name)}</span>`).join('')}<span><i class="dot"></i>max speed</span><span><i class="dot hollow"></i>cruise</span><span><i class="dash"></i>speed of sound</span></div>
+        ${envNotes(list)}
         <p class="fine">Modeled from published stall speed, top speed and ceiling using the standard atmosphere.</p></section>`;
     }
     CMP_GROUPS.forEach(([title, rows]) => {
@@ -627,7 +694,7 @@
           const v = vals[i], t = texts[i];
           const shown = t && (v === null || v === 0) ? `<span class="txt">${esc(t)}</span>` : v === null ? '<span class="muted">—</span>' : esc(U.fmt(v, kind, kind === 'speed' || kind === 'dist' || kind === 'runway' || kind === 'alt' ? { step: kind === 'runway' ? 10 : 1 } : { exact: true }));
           const bar = v !== null && kind && kind !== 'year' && max > 0 && nums.length > 1 ? `<div class="bar" style="--c:${SERIES[i]};width:${Math.max(2, v / max * 100)}%"></div>` : '';
-          return `<div class="cmp-cell${best === i ? ' best' : ''}">${shown}${bar}</div>`;
+          return `<div class="cmp-cell${best === i ? ' best' : ''}">${shown}${v !== null ? mark(a, label) : ''}${bar}</div>`;
         }).join('');
         rh += `<div class="cmp-row" style="--n:${n}"><div class="cmp-label">${label}</div>${cells}</div>`;
       });
@@ -712,27 +779,26 @@
       const cmp = t.closest('[data-cmp]');
       if (cmp) {
         e.preventDefault();
-        const id = cmp.dataset.cmp;
-        if (toggleCompare(id)) {
-          const on = compare.includes(real(id));
-          document.querySelectorAll(`[data-cmp="${id}"]`).forEach(b => {
-            b.setAttribute('aria-pressed', on);
-            if (b.id === 'dcmp') { b.textContent = on ? '✓ In comparison' : '+ Add to compare'; b.classList.toggle('on', on); }
-            else b.textContent = on ? '✓ Comparing' : '+ Compare';
-            const card = b.closest('.card'); if (card) card.classList.toggle('sel', on);
-          });
-        }
+        if (toggleCompare(cmp.dataset.cmp)) syncCmp();
+        return;
+      }
+      const est = t.closest('[data-est]');
+      if (est) {
+        e.preventDefault(); e.stopPropagation();
+        const [id, f] = est.dataset.est.split('|');
+        const a = BY_ID[id];
+        if (a && a.est && a.est[f]) openSheet('* Estimated figure', `<p style="margin:0 0 8px"><b>${esc(a.name)}</b></p><p style="margin:0">${esc(a.est[f])}</p><p class="muted" style="margin:10px 0 0;font-size:13px">Figures without a * are published values (approximate, for the model named).</p>`);
         return;
       }
       const rm = t.closest('[data-rm]');
       if (rm) {
         e.preventDefault();
         toggleCompare(rm.dataset.rm);
-        document.querySelectorAll(`[data-cmp="${rm.dataset.rm}"]`).forEach(b => { b.setAttribute('aria-pressed', false); b.textContent = '+ Compare'; const c = b.closest('.card'); if (c) c.classList.remove('sel'); });
-        if (route().name === 'compare') { history.replaceState(null, '', '#/compare'); render(true); }
+        if (route().name === 'compare') history.replaceState(null, '', '#/compare');
+        syncCmp();
         return;
       }
-      if (t.closest('[data-clear]')) { compare = []; saveCompare(); updateTray(); updateNav(); document.querySelectorAll('.card.sel').forEach(c => c.classList.remove('sel')); document.querySelectorAll('[data-cmp]').forEach(b => { b.setAttribute('aria-pressed', false); b.textContent = '+ Compare'; }); return; }
+      if (t.closest('[data-clear]')) { compare = []; saveCompare(); updateTray(); updateNav(); document.querySelectorAll('.card.sel').forEach(c => c.classList.remove('sel')); syncCmp(); return; }
       const cat = t.closest('[data-cat]');
       if (cat) {
         S.cat = cat.dataset.cat;

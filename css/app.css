@@ -382,3 +382,15 @@ footer.foot { color: var(--muted); font-size: 12.5px; padding: 30px 0 120px; bor
 .model { flex: none; font-size: 13px; font-weight: 600; padding: 6px 11px; border-radius: 999px; background: rgba(255,255,255,.16); color: #fff; text-decoration: none; backdrop-filter: blur(6px); white-space: nowrap; }
 .model small { font-weight: 500; opacity: .8; margin-left: 2px; }
 .model.on { background: var(--accent); color: var(--accent-ink); }
+
+/* ---------- estimates (*) and bottom sheet ---------- */
+.est { border: 0; background: none; padding: 0 3px; margin-left: 1px; color: #e0a43a; font: inherit; font-weight: 800; cursor: pointer; vertical-align: super; font-size: .8em; line-height: 1; }
+.env-note { font-size: 13px; color: var(--text-2); margin: 8px 0 0; }
+.sheet { position: fixed; inset: 0; z-index: 60; display: flex; align-items: flex-end; justify-content: center; }
+.sheet[hidden] { display: none; }
+.sheet-back { position: absolute; inset: 0; background: rgba(0, 0, 0, .5); }
+.sheet-box { position: relative; width: 100%; max-width: 560px; max-height: 80vh; overflow: auto; background: var(--surface); color: var(--text); border-radius: 16px 16px 0 0; padding: 14px 16px calc(18px + env(safe-area-inset-bottom)); box-shadow: var(--shadow); }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.sheet-head h3 { margin: 0; font-size: 17px; }
+.sheet-x { border: 0; background: var(--surface-2); color: var(--text); width: 32px; height: 32px; border-radius: 50%; font-size: 20px; line-height: 1; cursor: pointer; }
+button.var-row { width: 100%; text-align: left; font: inherit; cursor: pointer; }
