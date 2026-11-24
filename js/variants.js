@@ -22,6 +22,12 @@ HANGAR.top = [
   { id: 'm2000', fleet: 270 }
 ];
 
+/* Top 10 drones, ranked roughly by numbers built and how widely they are used (approx.). */
+HANGAR.topDrones = [
+  { id: 'mavic3' }, { id: 'tb2' }, { id: 'mq9' }, { id: 'shahed136' }, { id: 'rq11' },
+  { id: 'mq1' }, { id: 'heron' }, { id: 'hermes450' }, { id: 'rq4' }, { id: 'wingloong2' }
+];
+
 HANGAR.variants = {
   f16: [
     { key: 'a', variant: 'F-16A/B (Block 1–20)', first: 1974, intro: 1978, built: null,

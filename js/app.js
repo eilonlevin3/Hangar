@@ -20,7 +20,8 @@
   ALL.forEach(a => { if (a.vars) DEF[a.id] = (a.vars.find(v => v.popular) || a.vars[0]).id; });
   const real = id => DEF[id] || id;
   const TOP = {};
-  (H.top || []).forEach((t, i) => { TOP[t.id] = Object.assign({ rank: i + 1 }, t); });
+  (H.top || []).forEach((t, i) => { TOP[t.id] = Object.assign({ rank: i + 1, kind: 'fighter' }, t); });
+  (H.topDrones || []).forEach((t, i) => { TOP[t.id] = Object.assign({ rank: i + 1, kind: 'drone' }, t); });
   const BY_ID = Object.fromEntries(ALL.concat(VARS).map(a => [a.id, a]));
   const CAT = Object.fromEntries(H.categories.map(c => [c.id, c]));
   const MAX_CMP = 3;
@@ -251,7 +252,7 @@
     const sel = inCompare(a.id);
     const third = a.pax > 0 ? ['Seats', String(a.pax)] : ['Max weight', U.fmt(a.mtow, 'mass')];
     return `<article class="card${sel ? ' sel' : ''}" data-id="${a.id}">
-      <div class="card-img ph">${PLANE}${imgTag(thumb(a), a.name)}${a.status !== 'Active' ? `<span class="badge">${a.status === 'Limited' ? 'Limited service' : 'Retired'}</span>` : ''}${TOP[a.id] ? `<span class="badge rank">#${TOP[a.id].rank} fighter</span>` : ''}</div>
+      <div class="card-img ph">${PLANE}${imgTag(thumb(a), a.name)}${a.status !== 'Active' ? `<span class="badge">${a.status === 'Limited' ? 'Limited service' : 'Retired'}</span>` : ''}${TOP[a.id] ? `<span class="badge rank">#${TOP[a.id].rank} ${TOP[a.id].kind}</span>` : ''}</div>
       <button class="cmp-btn" data-cmp="${a.id}" aria-pressed="${sel}">${sel ? '✓ Comparing' : '+ Compare'}</button>
       <div class="card-body">
         <div class="card-cat">${esc(catLabel(a))} · ${esc(a.country)}</div>
@@ -298,7 +299,7 @@
         <div class="toolbar">
           <span class="count" id="count"></span>
           <select id="sort" aria-label="Sort">
-            ${[['popular', 'Top 10 fighters first'], ['name', 'Name A–Z'], ['speed', 'Fastest'], ['range', 'Longest range'], ['ceiling', 'Highest ceiling'], ['mtow', 'Heaviest'], ['pax', 'Most seats'], ['newest', 'Newest first flight'], ['oldest', 'Oldest first flight']].map(([v, l]) => `<option value="${v}"${S.sort === v ? ' selected' : ''}>${l}</option>`).join('')}
+            ${[['popular', 'Top 10 first'], ['name', 'Name A–Z'], ['speed', 'Fastest'], ['range', 'Longest range'], ['ceiling', 'Highest ceiling'], ['mtow', 'Heaviest'], ['pax', 'Most seats'], ['newest', 'Newest first flight'], ['oldest', 'Oldest first flight']].map(([v, l]) => `<option value="${v}"${S.sort === v ? ' selected' : ''}>${l}</option>`).join('')}
           </select>
           <select id="status" aria-label="Status">
             ${[['all', 'Any status'], ['Active', 'In service'], ['Limited', 'Limited service'], ['Retired', 'Retired']].map(([v, l]) => `<option value="${v}"${S.status === v ? ' selected' : ''}>${l}</option>`).join('')}
@@ -376,7 +377,7 @@
             <div class="tags">
               ${a.cats.map(c => `<a class="tag" href="#/" data-gocat="${c}">${esc(CAT[c].label)}</a>`).join('')}
               <span class="tag status-${a.status}">${a.status === 'Active' ? 'In service' : a.status === 'Limited' ? 'Limited service' : 'Retired'}</span>
-              ${top ? `<span class="tag rank" title="${esc(top.fleetNote || '')}">#${top.rank} most flown fighter · about ${U.fmt(top.fleet, 'count')} in service</span>` : ''}
+              ${top ? `<span class="tag rank" title="${esc(top.fleetNote || '')}">#${top.rank} ${top.kind === 'drone' ? 'most popular drone' : 'most flown fighter'}${top.fleet ? ` · about ${U.fmt(top.fleet, 'count')} in service` : ''}</span>` : ''}
             </div>
             <h1>${esc(fam ? fam.name : a.name)}</h1>
             ${fam ? `<div class="models" aria-label="Model">${fam.vars.map(v => `<a class="model${v.id === a.id ? ' on' : ''}" href="#/a/${v.id}"${v.id === a.id ? ' aria-current="page"' : ''}>${esc(v.variant)}${v.popular ? ' <small>most common</small>' : ''}</a>`).join('')}</div>` : ''}

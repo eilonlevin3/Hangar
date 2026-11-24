@@ -71,4 +71,5 @@ Use the variant named in `variant` consistently. Check the article title opens o
 - Favourites list, "random aircraft" button, quiz mode.
 - Silhouette size comparison (overlay outlines to scale).
 
+- Drones: the top 10 by popularity get a "#N drone" badge (`HANGAR.topDrones` in variants.js, 2026-11-24).
 - Estimates (owner, 2026-11-24): any figure that is assumed rather than published gets a * that opens a sheet explaining the assumption. Keep doing this for new data.
