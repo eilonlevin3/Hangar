@@ -1,6 +1,6 @@
 /* Network-first for the app shell so updates show up immediately; cached copy when offline.
  * Wikipedia API answers and photos are not cached here (the app caches API answers in localStorage). */
-const CACHE = 'hangar-v11';
+const CACHE = 'hangar-v12';
 const SHELL = ['./', 'index.html', 'css/app.css', 'js/data.js', 'js/variants.js', 'js/drone-variants.js', 'js/civil-variants.js', 'js/variant-perf.js', 'js/units.js', 'js/wiki.js', 'js/envelope.js', 'js/app.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png'];
 
 self.addEventListener('install', e => {

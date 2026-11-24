@@ -28,7 +28,7 @@
   const CAT = Object.fromEntries(H.categories.map(c => [c.id, c]));
   const MAX_CMP = 3;
   const SERIES = ['var(--s1)', 'var(--s2)', 'var(--s3)'];
-  const FEATURE = { fighter: 'f22', bomber: 'b2', attack: 'a10', recon: 'sr71', male: 'mq9', smalluav: 'mavic3', transport: 'c17', freighter: 'b77f', narrowbody: 'a320neo', widebody: 'a380', regional: 'atr72', bizjet: 'g650', private: 'sr22', helicopter: 'ah64', trainer: 't38', warbird: 'spitfire', record: 'concorde' };
+  const FEATURE = { fighter: 'f22', bomber: 'b2', attack: 'a10', recon: 'sr71', male: 'mq9', smalluav: 'mavic3', transport: 'c17', freighter: 'b77f', narrowbody: 'a320neo', widebody: 'a380', regional: 'atr72', bizjet: 'g650', private: 'sr22', attackheli: 'ah64', milheli: 'ch47', civilheli: 'h125', trainer: 't38', warbird: 'spitfire', record: 'concorde' };
   const ROUTES = [
     ['London → Paris', 344], ['Tel Aviv → Athens', 1200], ['Tel Aviv → London', 3570], ['London → New York', 5570],
     ['Tel Aviv → New York', 9130], ['Los Angeles → Sydney', 12050], ['Singapore → New York', 15350]
@@ -84,7 +84,7 @@
   const FIELD = { 'Top speed': 'vmax', 'Top speed (Mach)': 'vmax', 'Top speed at sea level': 'vmaxSL', 'Cruise': 'cruise', 'Cruise speed': 'cruise',
     'Stall speed (clean, est.)': 'vstall', 'Ceiling': 'ceiling', 'Service ceiling': 'ceiling', 'Rate of climb': 'climb', 'g limits': 'gmax', 'Max g': 'gmax',
     'Range': 'range', 'Ferry range': 'ferry', 'Combat radius': 'radius', 'Empty weight': 'empty', 'Max take-off weight': 'mtow', 'Internal fuel': 'fuel',
-    'Max payload / weapons': 'payload', 'First flight': 'first', 'Entered service': 'intro', 'Take-off distance': 'takeoff', 'Thrust per engine': 'thrust', 'Total thrust': 'thrust' };
+    'Max payload / weapons': 'payload', 'First flight': 'first', 'Number built': 'built', 'Power per engine': 'power', 'Entered service': 'intro', 'Take-off distance': 'takeoff', 'Thrust per engine': 'thrust', 'Total thrust': 'thrust' };
   function mark(a, label) {
     const f = FIELD[label];
     return a && f && a.est && a.est[f] ? `<button class="est" data-est="${a.id}|${f}" aria-label="Estimated figure: why?">*</button>` : '';
