@@ -28,6 +28,7 @@ HANGAR.categories = [
   { id: 'civilheli',  label: 'Civil & light helicopters', blurb: 'Training, private, air ambulance, offshore' },
   { id: 'trainer',    label: 'Trainers',                 blurb: 'Where military pilots learn' },
   { id: 'warbird',    label: 'WWII warbirds',            blurb: 'Classic piston fighters and bombers' },
+  { id: 'skunk',      label: 'Skunk Works',              blurb: 'Lockheed\'s secret projects: Blackbirds, stealth, X-planes' },
   { id: 'record',     label: 'Supersonic & record breakers', blurb: 'The fastest, highest and biggest' }
 ];
 
@@ -49,7 +50,7 @@ HANGAR.aircraft = [
     range: 1967, ferry: 5550, takeoff: 275, landing: 900, gmax: 9, gmin: -3, cost: 30,
     note: 'More than 100 air-to-air victories with no losses in air combat.' },
 
-  { id: 'f22', name: 'F-22 Raptor', variant: 'F-22A', maker: 'Lockheed Martin / Boeing', country: 'USA', cats: ['fighter'], role: 'Stealth air superiority fighter', wiki: 'Lockheed_Martin_F-22_Raptor',
+  { id: 'f22', name: 'F-22 Raptor', variant: 'F-22A', maker: 'Lockheed Martin / Boeing', country: 'USA', cats: ['fighter', 'skunk'], role: 'Stealth air superiority fighter', wiki: 'Lockheed_Martin_F-22_Raptor',
     first: 1997, intro: 2005, status: 'Active', built: 195, crew: 1, pax: 0,
     len: 18.92, span: 13.56, height: 5.08, wing: 78.04, empty: 19700, mtow: 38000, payload: 2270, fuel: 8200,
     engN: 2, engine: 'Pratt & Whitney F119-PW-100 afterburning turbofan with thrust vectoring', thrust: 116, thrustAB: 156,
@@ -57,7 +58,7 @@ HANGAR.aircraft = [
     radius: 852, ferry: 2960, takeoff: 450, landing: 900, gmax: 9, gmin: -3, cost: 150,
     note: 'Can "supercruise" at about Mach 1.8 without afterburner. Its cruise figure here is supersonic.' },
 
-  { id: 'f35', name: 'F-35 Lightning II', variant: 'F-35A', maker: 'Lockheed Martin', country: 'USA', cats: ['fighter'], role: 'Stealth multirole fighter', wiki: 'Lockheed_Martin_F-35_Lightning_II',
+  { id: 'f35', name: 'F-35 Lightning II', variant: 'F-35A', maker: 'Lockheed Martin', country: 'USA', cats: ['fighter', 'skunk'], role: 'Stealth multirole fighter', wiki: 'Lockheed_Martin_F-35_Lightning_II',
     first: 2006, intro: 2016, status: 'Active', built: 1100, crew: 1, pax: 0,
     len: 15.7, span: 10.7, height: 4.38, wing: 42.7, empty: 13290, mtow: 29900, payload: 8160, fuel: 8278,
     engN: 1, engine: 'Pratt & Whitney F135 afterburning turbofan', thrust: 125, thrustAB: 191,
@@ -260,7 +261,7 @@ HANGAR.aircraft = [
     note: 'Built for very low-level, high-speed penetration. Thrust reversers give it a very short landing run.' },
 
   /* ---------------- Recon & special mission ---------------- */
-  { id: 'sr71', name: 'SR-71 Blackbird', variant: 'SR-71A', maker: 'Lockheed (Skunk Works)', country: 'USA', cats: ['recon', 'record'], role: 'Strategic reconnaissance', wiki: 'Lockheed_SR-71_Blackbird',
+  { id: 'sr71', name: 'SR-71 Blackbird', variant: 'SR-71A', maker: 'Lockheed (Skunk Works)', country: 'USA', cats: ['recon', 'record', 'skunk'], role: 'Strategic reconnaissance', wiki: 'Lockheed_SR-71_Blackbird',
     first: 1964, intro: 1966, status: 'Retired', built: 32, crew: 2, pax: 0,
     len: 32.74, span: 16.94, height: 5.64, wing: 170, empty: 30600, mtow: 78000, fuel: 36300,
     engN: 2, engine: 'Pratt & Whitney J58 afterburning turbojet / ramjet', thrust: 111, thrustAB: 151,
@@ -268,7 +269,7 @@ HANGAR.aircraft = [
     range: 5400, takeoff: 1600, landing: 1800, gmax: 3,
     note: 'Fastest crewed air-breathing jet: 3,529.6 km/h in 1976. More than 4,000 missiles were fired at it; none hit.' },
 
-  { id: 'u2', name: 'Lockheed U-2', variant: 'U-2S', maker: 'Lockheed (Skunk Works)', country: 'USA', cats: ['recon'], role: 'High-altitude reconnaissance', wiki: 'Lockheed_U-2',
+  { id: 'u2', name: 'Lockheed U-2', variant: 'U-2S', maker: 'Lockheed (Skunk Works)', country: 'USA', cats: ['recon', 'skunk'], role: 'High-altitude reconnaissance', wiki: 'Lockheed_U-2',
     first: 1955, intro: 1956, status: 'Active', built: 104, crew: 1, pax: 0,
     len: 19.2, span: 31.4, height: 4.88, wing: 92.9, empty: 7260, mtow: 18140, payload: 2270, fuel: 4500,
     engN: 1, engine: 'GE F118-GE-101 turbofan', thrust: 84.5,
@@ -1292,6 +1293,88 @@ HANGAR.aircraft = [
     range: 430, takeoff: 0, landing: 0,
     est: { built: 'Approximate total for the OH-6 and 500 series together.' },
     note: 'The flying egg. Special forces fly it as the "Little Bird", and it was the helicopter in Magnum, P.I.' },
+
+  /* ---------------- Skunk Works (Lockheed Advanced Development Programs) ---------------- */
+  { id: 'p80', name: 'Lockheed P-80 Shooting Star', variant: 'P-80C (F-80C)', maker: 'Lockheed (Skunk Works)', country: 'USA', cats: ['skunk'], role: 'Jet fighter', wiki: 'Lockheed_P-80_Shooting_Star',
+    first: 1944, intro: 1945, status: 'Retired', built: 1715, crew: 1, pax: 0,
+    len: 10.51, span: 11.81, height: 3.43, wing: 22.07, empty: 3819, mtow: 7646, fuel: 1290,
+    engN: 1, engine: 'Allison J33-A-35 turbojet', thrust: 24,
+    vmax: 956, vmaxAlt: 0, vmaxSL: 956, cruise: 707, cruiseAlt: 9000, vstall: 200, ceiling: 14000, climb: 34.9,
+    range: 1930, takeoff: 1200, landing: 1000,
+    est: { vstall: 'Estimated: no published clean stall speed; typical for a straight-wing early jet.', takeoff: 'Estimated.', landing: 'Estimated.' },
+    note: 'The first Skunk Works aircraft: Kelly Johnson\'s team designed and built the prototype in 143 days in 1943, in a rented circus tent.' },
+
+  { id: 'f104', name: 'Lockheed F-104 Starfighter', variant: 'F-104G', maker: 'Lockheed (Skunk Works)', country: 'USA', cats: ['skunk'], role: 'Interceptor and fighter-bomber', wiki: 'Lockheed_F-104_Starfighter',
+    first: 1954, intro: 1958, status: 'Retired', built: 2578, crew: 1, pax: 0,
+    len: 16.66, span: 6.36, height: 4.09, wing: 18.22, empty: 6350, mtow: 13166, payload: 1814, fuel: 2700,
+    engN: 1, engine: 'GE J79-GE-11A afterburning turbojet', thrust: 44.5, thrustAB: 69.4,
+    vmax: 2137, vmaxAlt: 11000, vmaxSL: 1470, cruise: 819, cruiseAlt: 10000, vstall: 300, ceiling: 15000, climb: 244,
+    radius: 670, ferry: 2623, takeoff: 900, landing: 900, gmax: 7.2,
+    est: { vstall: 'Estimated: its tiny wing gave it a very high landing speed, about 300 km/h.', vmaxSL: 'Estimated sea-level limit.', takeoff: 'Estimated.', landing: 'Estimated, with drag chute.' },
+    note: 'The "missile with a man in it": stubby razor-thin wings and Mach 2. The first aircraft to hold the world speed and altitude records at the same time.' },
+
+  { id: 'a12', name: 'Lockheed A-12 Oxcart', variant: 'A-12', maker: 'Lockheed (Skunk Works)', country: 'USA', cats: ['skunk', 'record'], role: 'CIA strategic reconnaissance', wiki: 'Lockheed_A-12',
+    first: 1962, intro: 1967, status: 'Retired', built: 13, crew: 1, pax: 0,
+    len: 31.26, span: 16.97, height: 5.64, wing: 170, empty: 24766, mtow: 56520, fuel: 30000,
+    engN: 2, engine: 'Pratt & Whitney J58 afterburning turbojet / ramjet', thrust: 111, thrustAB: 151,
+    vmax: 3560, vmaxAlt: 24000, vmaxSL: 1000, cruise: 3300, cruiseAlt: 25000, vstall: 260, ceiling: 28900,
+    range: 4000, takeoff: 1600, landing: 1800, gmax: 3,
+    est: { fuel: 'Estimated from the SR-71\'s capacity, scaled for the A-12\'s weights.', vmaxSL: 'Estimated low-altitude limit, as for the SR-71.' },
+    note: 'The CIA\'s single-seat forerunner of the SR-71. It flew even higher and faster, but only 29 operational missions before it was retired in 1968.' },
+
+  { id: 'yf12', name: 'Lockheed YF-12', variant: 'YF-12A', maker: 'Lockheed (Skunk Works)', country: 'USA', cats: ['skunk'], role: 'Mach 3 interceptor prototype', wiki: 'Lockheed_YF-12',
+    first: 1963, intro: 1963, status: 'Retired', built: 3, crew: 2, pax: 0,
+    len: 30.97, span: 16.95, height: 5.64, wing: 170, empty: 27604, mtow: 63504,
+    engN: 2, engine: 'Pratt & Whitney J58 afterburning turbojet / ramjet', thrust: 111, thrustAB: 151,
+    vmax: 3331, vmaxAlt: 24000, vmaxSL: 1000, cruise: 3200, cruiseAlt: 24000, vstall: 260, ceiling: 27430,
+    range: 4800, takeoff: 1600, landing: 1800,
+    est: { vmaxSL: 'Estimated low-altitude limit, as for the SR-71.' },
+    note: 'A Blackbird interceptor with a radar in the nose and missiles in bays. Set a world speed record of 3,331 km/h in 1965, then flew research for NASA.' },
+
+  { id: 'f117', name: 'Lockheed F-117 Nighthawk', variant: 'F-117A', maker: 'Lockheed (Skunk Works)', country: 'USA', cats: ['skunk'], role: 'Stealth attack aircraft', wiki: 'Lockheed_F-117_Nighthawk',
+    first: 1981, intro: 1983, status: 'Limited', built: 64, crew: 1, pax: 0,
+    len: 20.09, span: 13.2, height: 3.78, wing: 73, empty: 13380, mtow: 23814, payload: 2300, fuel: 8000,
+    engN: 2, engine: 'GE F404-F1D2 turbofan (no afterburner)', thrust: 48,
+    vmax: 993, vmaxAlt: 9000, vmaxSL: 900, cruise: 904, cruiseAlt: 9000, vstall: 300, ceiling: 13716,
+    range: 1720, takeoff: 2000, landing: 1500, gmax: 6,
+    est: { fuel: 'Estimated: not published.', vstall: 'Estimated: its faceted wing is inefficient, so it lands fast.', vmaxSL: 'Estimated.', takeoff: 'Estimated.', landing: 'Estimated, with drag chute.' },
+    note: 'The first operational stealth aircraft: flat facets bounce radar away. Kept secret until 1988. Officially retired in 2008, but some still fly as training adversaries.' },
+
+  { id: 'rq170', name: 'Lockheed Martin RQ-170 Sentinel', variant: 'RQ-170', maker: 'Lockheed Martin (Skunk Works)', country: 'USA', cats: ['skunk'], role: 'Stealth reconnaissance drone', wiki: 'Lockheed_Martin_RQ-170_Sentinel',
+    first: 2007, intro: 2007, status: 'Active', built: 30, crew: 0, pax: 0,
+    len: 4.5, span: 20, height: 1.8, mtow: 3900,
+    engN: 1, engine: 'Turbofan (type not disclosed)',
+    vmax: 800, vmaxAlt: 12000, vmaxSL: 600, cruise: 700, cruiseAlt: 13000, vstall: 180, ceiling: 15000,
+    range: 2500,
+    est: { span: 'Estimated from photos; the US has published no figures.', mtow: 'Estimated: not published.', vmax: 'Estimated: not published.', cruise: 'Estimated: not published.', vstall: 'Estimated.', ceiling: 'Estimated: reported to fly around 50,000 ft.', range: 'Estimated: not published.', built: 'Estimated: reported as 20 to 30.' },
+    note: 'The "Beast of Kandahar", first seen in Afghanistan in 2007. Iran captured one almost intact in 2011. Almost everything about it is still secret.' },
+
+  { id: 'x59', name: 'Lockheed Martin X-59 Quesst', variant: 'X-59', maker: 'Lockheed Martin (Skunk Works) / NASA', country: 'USA', cats: ['skunk'], role: 'Quiet supersonic research aircraft', wiki: 'Lockheed_Martin_X-59_Quesst',
+    first: 2025, intro: 2025, status: 'Active', built: 1, crew: 1, pax: 0,
+    len: 30.4, span: 9, height: 4.3, mtow: 14650,
+    engN: 1, engine: 'GE F414-GE-100 afterburning turbofan', thrust: 57, thrustAB: 98,
+    vmax: 1590, vmaxAlt: 15000, vmaxSL: 1100, cruise: 1510, cruiseAlt: 16800, vstall: 250, ceiling: 18300,
+    range: 1500,
+    est: { vmaxSL: 'Estimated.', vstall: 'Estimated.', range: 'Estimated: not published.', ceiling: 'Estimated: it is designed to cruise at 55,000 ft; the true ceiling is not published.' },
+    note: 'Built for NASA to turn the sonic boom into a soft "thump". Its nose is so long the pilot has no forward window and looks through a camera screen.' },
+
+  { id: 'd21', name: 'Lockheed D-21', variant: 'D-21B', maker: 'Lockheed (Skunk Works)', country: 'USA', cats: ['skunk'], role: 'Mach 3 reconnaissance drone', wiki: 'Lockheed_D-21',
+    first: 1964, intro: 1969, status: 'Retired', built: 38, crew: 0, pax: 0,
+    len: 13.06, span: 5.79, height: 2.14, mtow: 5000,
+    engN: 1, engine: 'Marquardt RJ43-MA20S-4 ramjet',
+    vmax: 3560, vmaxAlt: 27000, vmaxSL: 1500, cruise: 3400, cruiseAlt: 27000, vstall: 400, ceiling: 29000,
+    range: 5550,
+    est: { vstall: 'Estimated: a ramjet drone launched at speed from an aircraft or booster rocket; it never flew slowly.', vmaxSL: 'Estimated.' },
+    note: 'A ramjet drone launched from the back of an M-21 Blackbird, later from a B-52 with a rocket booster. It flew four missions over China; none of its film was recovered.' },
+
+  { id: 'jetstar', name: 'Lockheed JetStar', variant: 'JetStar II', maker: 'Lockheed (Skunk Works design)', country: 'USA', cats: ['skunk', 'bizjet'], role: 'Business jet', wiki: 'Lockheed_JetStar',
+    first: 1957, intro: 1961, status: 'Limited', built: 204, crew: 2, pax: 10,
+    len: 18.41, span: 16.6, height: 6.23, wing: 50.4, empty: 11226, mtow: 20185,
+    engN: 4, engine: 'Garrett TFE731-3 turbofan', thrust: 16.5,
+    vmax: 880, vmaxAlt: 9000, vmaxSL: 700, cruise: 811, cruiseAlt: 11000, vstall: 190, ceiling: 13105,
+    range: 4820, takeoff: 1600, landing: 1100,
+    est: { vstall: 'Estimated.', vmaxSL: 'Estimated.' },
+    note: 'One of the first business jets, designed by the Skunk Works in 241 days. Elvis Presley owned one.' },
 
   /* ---------------- Trainers ---------------- */
   { id: 't38', name: 'Northrop T-38 Talon', variant: 'T-38C', maker: 'Northrop', country: 'USA', cats: ['trainer'], role: 'Supersonic jet trainer', wiki: 'Northrop_T-38_Talon',

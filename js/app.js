@@ -28,7 +28,7 @@
   const CAT = Object.fromEntries(H.categories.map(c => [c.id, c]));
   const MAX_CMP = 3;
   const SERIES = ['var(--s1)', 'var(--s2)', 'var(--s3)'];
-  const FEATURE = { fighter: 'f22', bomber: 'b2', attack: 'a10', recon: 'sr71', male: 'mq9', smalluav: 'mavic3', transport: 'c17', freighter: 'b77f', narrowbody: 'a320neo', widebody: 'a380', regional: 'atr72', bizjet: 'g650', private: 'sr22', attackheli: 'ah64', milheli: 'ch47', civilheli: 'h125', trainer: 't38', warbird: 'spitfire', record: 'concorde' };
+  const FEATURE = { fighter: 'f22', bomber: 'b2', attack: 'a10', recon: 'sr71', male: 'mq9', smalluav: 'mavic3', transport: 'c17', freighter: 'b77f', narrowbody: 'a320neo', widebody: 'a380', regional: 'atr72', bizjet: 'g650', private: 'sr22', attackheli: 'ah64', milheli: 'ch47', civilheli: 'h125', skunk: 'f117', trainer: 't38', warbird: 'spitfire', record: 'concorde' };
   const ROUTES = [
     ['London → Paris', 344], ['Tel Aviv → Athens', 1200], ['Tel Aviv → London', 3570], ['London → New York', 5570],
     ['Tel Aviv → New York', 9130], ['Los Angeles → Sydney', 12050], ['Singapore → New York', 15350]
