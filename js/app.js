@@ -627,22 +627,28 @@
   /* "Seen from": a radar that detects 1 m² at 100 km; range grows with the fourth root of RCS. */
   const detectKm = rcs => 100 * Math.pow(rcs, 0.25);  // radar range grows with the fourth root of RCS
   /* Radar cross section as an x/y graph: each aircraft is a square with the same area as its RCS, all sharing the
-     bottom-left corner. Both axes are logarithmic (1 cm to 30 m per side), so a stealth fighter and a bomber
-     fit on the same chart. One short line per aircraft below it. */
-  const RCS_L0 = -2.5, RCS_L1 = 1.5;  // log10 of the side length in metres: 3 mm to 32 m
-  function rcsSquares(sq) {  // sq: [{ rcs, color, label, ref }]
-    const X0 = 46, Y0 = 8, P = 270, W = X0 + P + 10, Hh = Y0 + P + 34;
-    const f = side => Math.max(1.5, Math.min(P, (Math.log10(side) - RCS_L0) / (RCS_L1 - RCS_L0) * P));
-    const ticks = [[0.01, '1 cm'], [0.1, '10 cm'], [1, '1 m'], [10, '10 m']];
-    let g = ticks.map(([v, t]) => {
+     bottom-left corner. Linear axes in metres (owner, 2026-11-25: not log), scaled to the biggest square shown,
+     so stealth aircraft really do shrink to a dot. A bus silhouette gives the scale. */
+  function rcsSquares(sq) {  // sq: [{ rcs, color, label, ref, bus }]
+    const X0 = 40, Y0 = 14, P = 270, W = X0 + P + 12, Hh = Y0 + P + 34;
+    const top = Math.max(...sq.filter(s => !s.ref).map(s => Math.sqrt(s.rcs)));
+    const nice = v => { const e = Math.pow(10, Math.floor(Math.log10(v))), m = v / e; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * e; };
+    const step = nice(top / 4), max = Math.ceil(top * 1.06 / step) * step;
+    const f = side => side / max * P;
+    const fmtM = v => v < 1 ? Math.round(v * 100) + ' cm' : (Math.round(v * 10) / 10) + ' m';
+    let g = '';
+    for (let v = step; v <= max + 1e-9; v += step) {
       const d = f(v);
-      return `<line x1="${X0 + d}" y1="${Y0}" x2="${X0 + d}" y2="${Y0 + P}" class="rg"/><line x1="${X0}" y1="${Y0 + P - d}" x2="${X0 + P}" y2="${Y0 + P - d}" class="rg"/>
-        <text x="${X0 + d}" y="${Y0 + P + 15}" text-anchor="middle">${t}</text><text x="${X0 - 6}" y="${Y0 + P - d + 4}" text-anchor="end">${t}</text>`;
-    }).join('');
-    g += `<rect x="${X0}" y="${Y0}" width="${P}" height="${P}" class="rf"/><text x="${X0 + P / 2}" y="${Hh - 2}" text-anchor="middle" class="rt">square of the same radar area (width × height)</text>`;
-    // biggest first so the smaller squares sit on top
-    sq.slice().sort((p, q) => q.rcs - p.rcs).forEach(s => {
-      const d = f(Math.sqrt(s.rcs)), x = X0, y = Y0 + P - d;
+      g += `<line x1="${X0 + d}" y1="${Y0}" x2="${X0 + d}" y2="${Y0 + P}" class="rg"/><line x1="${X0}" y1="${Y0 + P - d}" x2="${X0 + P}" y2="${Y0 + P - d}" class="rg"/>
+        <text x="${X0 + d}" y="${Y0 + P + 15}" text-anchor="middle">${fmtM(v)}</text><text x="${X0 - 6}" y="${Y0 + P - d + 4}" text-anchor="end">${fmtM(v)}</text>`;
+    }
+    g += `<rect x="${X0}" y="${Y0}" width="${P}" height="${P}" class="rf"/><text x="${X0 - 6}" y="${Y0 + P + 15}" text-anchor="end">0</text>
+      <text x="${X0 + P / 2}" y="${Hh - 2}" text-anchor="middle" class="rt">square of the same radar area (width × height)</text>`;
+    let small = 0;
+    const bus = sq.find(s => s.bus), base = bus ? Y0 + P - 0.56 * f(Math.sqrt(bus.rcs)) - 24 : Y0 + P - 30;  // small-square labels stack up from just above the bus
+    // biggest first so the smaller squares sit on top; references bigger than the chart are left out
+    sq.filter(s => !s.ref || Math.sqrt(s.rcs) <= max).sort((p, q) => q.rcs - p.rcs).forEach(s => {
+      const d = Math.max(2, f(Math.sqrt(s.rcs))), x = X0, y = Y0 + P - d;
       if (s.bus) {  // side-view bus silhouette filling the width of its square, standing on the x axis
         const k = d / 100;
         g += `<g class="rbus" transform="translate(${x} ${(y + d - 56 * k).toFixed(1)}) scale(${k.toFixed(3)})">
@@ -653,9 +659,13 @@
       }
       g += s.ref
         ? `<rect x="${x}" y="${y}" width="${d}" height="${d}" class="rr"/>`
-        : `<rect x="${x}" y="${y}" width="${d}" height="${d}" style="fill:${s.color};fill-opacity:.22;stroke:${s.color};stroke-width:2"/>`;
-      const inside = d > 70;
-      g += `<text x="${inside ? x + d - 5 : x + d + 4}" y="${inside ? y + 14 : y + 4}" text-anchor="${inside ? 'end' : 'start'}" class="${s.ref ? 'rl' : 'rv'}"${s.ref ? '' : ` style="fill:${s.color}"`}>${esc(s.label)}</text>`;
+        : `<rect x="${x}" y="${y}" width="${d}" height="${d}" style="fill:${s.color};fill-opacity:.22;stroke:${s.color};stroke-width:${d > 6 ? 2 : 1}"/>`;
+      const cls = s.ref ? 'rl' : 'rv', col = s.ref ? '' : ` style="fill:${s.color}"`;
+      if (d > 70) g += `<text x="${x + d - 5}" y="${y + 14}" text-anchor="end" class="${cls}"${col}>${esc(s.label)}</text>`;
+      else {  // small squares: label stacked in the top-left corner, with a thin line to the square
+        const ly = base - 16 * small++;
+        g += `<line x1="${x + d}" y1="${y}" x2="${X0 + 8}" y2="${ly + 3}" class="rk"${s.ref ? '' : ` style="stroke:${s.color}"`}/><text x="${X0 + 10}" y="${ly}" class="${cls}"${col}>${esc(s.label)}</text>`;
+      }
     });
     return `<svg class="rcs-svg" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Radar cross sections drawn as squares">${g}</svg>`;
   }
