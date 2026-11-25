@@ -406,3 +406,34 @@ button.var-row { width: 100%; text-align: left; font: inherit; cursor: pointer; 
   .top.deep .brand { font-size: 0; gap: 0; }
   .top.deep .brand svg { width: 24px; height: 24px; }
 }
+
+/* ---------- find on this page ---------- */
+.icon-btn.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.findbar { position: sticky; top: calc(var(--header-h) + env(safe-area-inset-top, 0px)); z-index: 29;
+  padding: 8px env(safe-area-inset-right, 0px) 8px env(safe-area-inset-left, 0px);
+  background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border); }
+.findbar[hidden] { display: none; }
+.findbar .wrap { display: flex; align-items: center; gap: 6px; }
+.findbar input { flex: 1; min-width: 0; height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); color: var(--text); font: inherit; font-size: 16px; }
+.findbar input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+.find-n { flex: none; font-size: 13px; color: var(--muted); white-space: nowrap; min-width: 44px; text-align: center; }
+.findbar .icon-btn { flex: none; font-size: 22px; line-height: 1; }
+mark.find-hit { background: rgba(255, 200, 0, .45); color: inherit; border-radius: 2px; padding: 0; }
+mark.find-hit.cur { background: #ff9d00; color: #111; box-shadow: 0 0 0 2px #ff9d00; }
+@media (max-width: 420px) {
+  .top .icon-btn { width: 32px; }
+  .top .wrap:has(.nav-ic:not([hidden])) { gap: 6px; }
+}
+
+/* ---------- radar cross section under the envelope ---------- */
+.env-rcs { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); font-size: 13.5px; }
+.env-rcs-h { display: block; font-size: 13px; margin-bottom: 4px; }
+.env-rcs ul { margin: 0; padding-left: 18px; }
+.env-rcs li { margin: 2px 0; color: var(--text-2); }
+.env-rcs .fine { margin: 6px 0 0; }
+@media (max-width: 420px) {
+  .top.deep .brand { display: none; }  /* the home button replaces it, leaving room for Compare + units */
+  .top.deep #nav-compare { margin-left: auto; }
+}

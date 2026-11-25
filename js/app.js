@@ -84,7 +84,7 @@
   const FIELD = { 'Top speed': 'vmax', 'Top speed (Mach)': 'vmax', 'Top speed at sea level': 'vmaxSL', 'Cruise': 'cruise', 'Cruise speed': 'cruise',
     'Stall speed (clean, est.)': 'vstall', 'Ceiling': 'ceiling', 'Service ceiling': 'ceiling', 'Rate of climb': 'climb', 'g limits': 'gmax', 'Max g': 'gmax',
     'Range': 'range', 'Ferry range': 'ferry', 'Combat radius': 'radius', 'Empty weight': 'empty', 'Max take-off weight': 'mtow', 'Internal fuel': 'fuel',
-    'Max payload / weapons': 'payload', 'First flight': 'first', 'Radar cross section': 'rcs', 'Number built': 'built', 'Power per engine': 'power', 'Entered service': 'intro', 'Take-off distance': 'takeoff', 'Thrust per engine': 'thrust', 'Total thrust': 'thrust' };
+    'Max payload / weapons': 'payload', 'First flight': 'first', 'Radar cross section': 'rcs', 'Radar detection range': 'rcs', 'Number built': 'built', 'Power per engine': 'power', 'Entered service': 'intro', 'Take-off distance': 'takeoff', 'Thrust per engine': 'thrust', 'Total thrust': 'thrust' };
   function mark(a, label) {
     const f = FIELD[label];
     return a && f && a.est && a.est[f] ? `<button class="est" data-est="${a.id}|${f}" aria-label="Estimated figure: why?">*</button>` : '';
@@ -196,6 +196,97 @@
     });
   }
 
+  /* ---------- find on this page ---------- */
+  /* The home-screen app has no Safari "Find on Page", so the header has its own: highlights every match in the
+     current view, with previous / next. It searches again after the page re-renders (route, units, compare). */
+  const F = { hits: [], i: 0 };
+  const findOpen = () => !$('#findbar').hidden;
+  function clearFind() {
+    document.querySelectorAll('mark.find-hit').forEach(m => {
+      const p = m.parentNode; if (!p) return;
+      p.replaceChild(document.createTextNode(m.textContent), m); p.normalize();
+    });
+    F.hits = []; F.i = 0;
+  }
+  function runFind(keepIndex) {
+    const q = $('#find-q').value.trim().toLowerCase();
+    const prev = F.i;
+    clearFind();
+    const out = $('#find-n');
+    if (!q) { out.textContent = ''; return; }
+    const walker = document.createTreeWalker($('#view'), NodeFilter.SHOW_TEXT, {
+      acceptNode: n => {
+        const el = n.parentElement;
+        if (!el || el.closest('script,style,svg,select,option,textarea') || !n.nodeValue.toLowerCase().includes(q)) return NodeFilter.FILTER_REJECT;
+        return el.getClientRects().length ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;  // skip hidden text
+      }
+    });
+    const nodes = [];
+    while (walker.nextNode() && nodes.length < 400) nodes.push(walker.currentNode);
+    nodes.forEach(n => {
+      const text = n.nodeValue, low = text.toLowerCase();
+      const frag = document.createDocumentFragment();
+      let at = 0, k;
+      while ((k = low.indexOf(q, at)) !== -1) {
+        if (k > at) frag.appendChild(document.createTextNode(text.slice(at, k)));
+        const m = document.createElement('mark'); m.className = 'find-hit'; m.textContent = text.slice(k, k + q.length);
+        frag.appendChild(m); F.hits.push(m);
+        at = k + q.length;
+      }
+      if (at < text.length) frag.appendChild(document.createTextNode(text.slice(at)));
+      n.parentNode.replaceChild(frag, n);
+    });
+    F.i = keepIndex ? Math.min(prev, Math.max(0, F.hits.length - 1)) : 0;
+    showHit(!keepIndex);
+  }
+  function showHit(scroll) {
+    const out = $('#find-n');
+    if (!F.hits.length) { out.textContent = $('#find-q').value.trim() ? 'No matches' : ''; return; }
+    F.hits.forEach((m, j) => m.classList.toggle('cur', j === F.i));
+    out.textContent = (F.i + 1) + ' / ' + F.hits.length;
+    if (scroll) {
+      const m = F.hits[F.i];
+      const det = m.closest('details'); if (det) det.open = true;
+      const top = m.getBoundingClientRect().top + window.scrollY;
+      const head = document.querySelector('.top').offsetHeight + $('#findbar').offsetHeight;
+      window.scrollTo({ top: Math.max(0, top - head - (innerHeight - head) / 3), behavior: 'smooth' });
+    }
+  }
+  function stepFind(d) {
+    if (!F.hits.length) return runFind();
+    F.i = (F.i + d + F.hits.length) % F.hits.length;
+    showHit(true);
+  }
+  function setFind(open) {
+    $('#findbar').hidden = !open;
+    $('#find').classList.toggle('on', open);
+    $('#find').setAttribute('aria-expanded', open);
+    if (open) { const q = $('#find-q'); q.focus(); q.select(); if (q.value) runFind(); }
+    else { clearFind(); $('#find-n').textContent = ''; }
+  }
+  function setupFind() {
+    let t;
+    $('#find').addEventListener('click', () => setFind(!findOpen()));
+    $('#find-x').addEventListener('click', () => setFind(false));
+    $('#find-q').addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => runFind(), 180); });
+    $('#find-q').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); clearTimeout(t); if (F.hits.length) stepFind(e.shiftKey ? -1 : 1); else runFind(); }
+      else if (e.key === 'Escape') setFind(false);
+    });
+    $('#find-prev').addEventListener('click', () => stepFind(-1));
+    $('#find-next').addEventListener('click', () => stepFind(1));
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') { e.preventDefault(); setFind(true); }
+    });
+    // Late content (the Wikipedia description, photo credits) arrives after render: search again when it lands.
+    let mt;
+    new MutationObserver(muts => {
+      if (!findOpen() || !$('#find-q').value.trim()) return;
+      if (muts.every(m => [...m.addedNodes, ...m.removedNodes].every(n => n.nodeName === 'MARK' || n.nodeType === 3))) return;
+      clearTimeout(mt); mt = setTimeout(() => runFind(true), 250);
+    }).observe($('#view'), { childList: true, subtree: true });
+  }
+
   /* ---------- tray ---------- */
   function updateTray() {
     const tray = $('#tray');
@@ -234,6 +325,7 @@
       renderCompare(view);
     } else renderBrowse(view);
     if (!keepScroll && key !== lastRoute) window.scrollTo(0, r.name === 'browse' ? (S.scroll || 0) : 0);
+    if (findOpen()) runFind(true);
     lastRoute = key;
     updateNav(); updateTray();
     const a = r.name === 'detail' ? BY_ID[r.id] : null;
@@ -444,6 +536,7 @@
               <div id="env"></div>
               <div class="legend"><span><i class="dot"></i>max speed</span><span><i class="dot hollow"></i>cruise</span><span><i class="dash"></i>speed of sound</span></div>
               ${envNotes([a])}
+              ${rcsHTML([a])}
               <p class="fine">Modeled from published stall speed, top speed and ceiling using the standard atmosphere. An illustration, not a flight-manual chart.</p>
             </section>
             <section class="panel">
@@ -529,6 +622,14 @@
       if (est.length) parts.push('Estimated inputs: ' + est.map(([f, l]) => `${l}<button class="est" data-est="${a.id}|${f}" aria-label="Why estimated">*</button>`).join(', ') + '.');
       return parts.length ? `<p class="env-note">${who}${parts.join(' ')}</p>` : '';
     }).join('');
+  }
+
+  /* Radar cross section under the envelope: how visible it is to radar, and how far away a radar would see it. */
+  const detectKm = rcs => 100 * Math.pow(rcs, 0.25);  // radar range grows with the fourth root of RCS
+  function rcsHTML(list) {
+    const rows = list.filter(a => a.rcs).map(a => `<li>${list.length > 1 ? `<b>${esc(a.name)}:</b> ` : ''}${esc(U.fmt(a.rcs, 'rcs'))}${mark(a, 'Radar cross section')}, ${esc(H.rcsLike(a.rcs))}. Spotted from about <b>${esc(U.fmt(detectKm(a.rcs), 'dist'))}</b>.</li>`).join('');
+    return rows ? `<div class="env-rcs"><b class="env-rcs-h">Radar cross section (estimated, head-on)</b><ul>${rows}</ul>
+      <p class="fine">"Spotted from" assumes a radar that detects a 1 m² target at 100 km. Detection range grows with the fourth root of the radar cross section, so 16 times smaller means half the distance.</p></div>` : '';
   }
 
   function variantsHTML(f, cur) {
@@ -650,6 +751,11 @@
       ['Rate of climb', a => a.climb, 'climb', 'hi'],
       ['Max g', a => a.gmax, 'g', 'hi']
     ]],
+    ['Radar & stealth', [
+      ['Radar cross section', a => a.rcs, 'rcs', 'lo'],
+      ['Radar detection range', a => (a.rcs ? detectKm(a.rcs) : null), 'dist', 'lo'],
+      ['Looks like on radar', a => null, null, null, a => (a.rcs ? H.rcsLike(a.rcs).replace(/^about an? /, '') : null)]
+    ]],
     ['Range & endurance', [
       ['Range', a => a.range, 'dist', 'hi'],
       ['Ferry range', a => a.ferry, 'dist', 'hi'],
@@ -671,8 +777,7 @@
       ['Length', a => a.len, 'len', null],
       ['Wingspan / rotor', a => a.span, 'len', null],
       ['Height', a => a.height, 'len', null],
-      ['Wing area', a => a.wing, 'area', null],
-      ['Radar cross section', a => a.rcs, 'rcs', 'lo']
+      ['Wing area', a => a.wing, 'area', null]
     ]],
     ['Powerplant', [
       ['Engines', a => null, null, null, a => `${a.engN || 1} × ${a.engine}`],
@@ -717,6 +822,7 @@
         <div id="env"></div>
         <div class="legend">${list.map((a, i) => `<span><i class="sw" style="background:${SERIES[i]}"></i>${esc(a.name)}</span>`).join('')}<span><i class="dot"></i>max speed</span><span><i class="dot hollow"></i>cruise</span><span><i class="dash"></i>speed of sound</span></div>
         ${envNotes(list)}
+        ${rcsHTML(list)}
         <p class="fine">Modeled from published stall speed, top speed and ceiling using the standard atmosphere.</p></section>`;
     }
     CMP_GROUPS.forEach(([title, rows]) => {
@@ -735,7 +841,8 @@
         const cells = list.map((a, i) => {
           const v = vals[i], t = texts[i];
           const shown = t && (v === null || v === 0) ? `<span class="txt">${esc(t)}</span>` : v === null ? '<span class="muted">—</span>' : esc(U.fmt(v, kind, kind === 'speed' || kind === 'dist' || kind === 'runway' || kind === 'alt' ? { step: kind === 'runway' ? 10 : 1 } : { exact: true }));
-          const bar = v !== null && kind && kind !== 'year' && max > 0 && nums.length > 1 ? `<div class="bar" style="--c:${SERIES[i]};width:${Math.max(2, v / max * 100)}%"></div>` : '';
+          const frac = kind === 'rcs' ? (Math.log10(v) + 4.5) / (Math.log10(max) + 4.5) : v / max;  // RCS spans a million to one: log scale
+          const bar = v !== null && kind && kind !== 'year' && max > 0 && nums.length > 1 ? `<div class="bar" style="--c:${SERIES[i]};width:${Math.max(2, frac * 100)}%"></div>` : '';
           return `<div class="cmp-cell${best === i ? ' best' : ''}">${shown}${v !== null ? mark(a, label) : ''}${bar}</div>`;
         }).join('');
         rh += `<div class="cmp-row" style="--n:${n}"><div class="cmp-label">${label}</div>${cells}</div>`;
@@ -877,6 +984,7 @@
   window.addEventListener('scroll', () => { if (route().name === 'browse') S.scroll = window.scrollY; }, { passive: true });
   window.addEventListener('hashchange', () => { trackDepth(); render(); });
   setupHeader();
+  setupFind();
   setupLightbox();
   setupClicks();
   render();
