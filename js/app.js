@@ -643,6 +643,14 @@
     // biggest first so the smaller squares sit on top
     sq.slice().sort((p, q) => q.rcs - p.rcs).forEach(s => {
       const d = f(Math.sqrt(s.rcs)), x = X0, y = Y0 + P - d;
+      if (s.bus) {  // side-view bus silhouette filling the width of its square, standing on the x axis
+        const k = d / 100;
+        g += `<g class="rbus" transform="translate(${x} ${(y + d - 56 * k).toFixed(1)}) scale(${k.toFixed(3)})">
+          <path fill-rule="evenodd" d="M8 4h84a6 6 0 0 1 6 6v36H2V10a6 6 0 0 1 6-6z M10 10h12v14H10z M26 10h12v14H26z M42 10h12v14H42z M58 10h12v14H58z M74 10h8v30h-8z M86 10h9v18h-9z"/>
+          <circle cx="22" cy="47" r="8"/><circle cx="78" cy="47" r="8"/><circle cx="22" cy="47" r="3" class="hub"/><circle cx="78" cy="47" r="3" class="hub"/></g>
+          <text x="${x + d - 5}" y="${(y + d - 56 * k - 6).toFixed(1)}" text-anchor="end" class="rl">${esc(s.label)}</text>`;
+        return;
+      }
       g += s.ref
         ? `<rect x="${x}" y="${y}" width="${d}" height="${d}" class="rr"/>`
         : `<rect x="${x}" y="${y}" width="${d}" height="${d}" style="fill:${s.color};fill-opacity:.22;stroke:${s.color};stroke-width:2"/>`;
@@ -659,10 +667,11 @@
     const sq = items.map(({ a, color }) => ({ rcs: a.rcs, color, label: short(a.rcs) }));
     if (!many) ['f22', 'f16', 'b52'].filter(id => id !== items[0].a.id && BY_ID[id]).forEach(id =>
       sq.push({ rcs: BY_ID[id].rcs, ref: true, label: BY_ID[id].name.split(' ')[0] }));
+    sq.push({ rcs: 30, bus: true, label: 'bus ≈30 m²' });  // a city bus head-on: rough, a big flat-fronted box (owner, 2026-11-25)
     const lines = items.map(({ a, color }) => `<li style="--c:${color}">${many ? `<b>${esc(a.name)}</b>: ` : ''}${esc(short(a.rcs))}${mark(a, 'Radar cross section')}, ${esc(H.rcsLike(a.rcs))}, seen from ~${esc(U.fmt(detectKm(a.rcs), 'dist'))}.</li>`).join('');
     return `<section class="panel">
       <h2>Radar cross section</h2>
-      <p class="sub">Estimated, head-on.${many ? '' : ' Grey squares: F-22, F-16 and B-52 for scale.'}</p>
+      <p class="sub">Estimated, head-on.${many ? ' Bus for scale.' : ' Grey: F-22, F-16, B-52 and a bus for scale.'}</p>
       ${rcsSquares(sq)}
       <ul class="rcs-facts${many ? ' many' : ''}">${lines}</ul>
     </section>`;
