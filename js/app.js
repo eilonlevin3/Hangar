@@ -624,47 +624,47 @@
     }).join('');
   }
 
-  /* Radar cross section under the envelope: how visible it is to radar, and how far away a radar would see it. */
+  /* "Seen from": a radar that detects 1 m² at 100 km; range grows with the fourth root of RCS. */
   const detectKm = rcs => 100 * Math.pow(rcs, 0.25);  // radar range grows with the fourth root of RCS
-  /* Same radar echo as a metal ball of this diameter (a sphere's RCS is its cross-section area, pi r^2). */
-  function ballText(rcs) {
-    const d = 2 * Math.sqrt(rcs / Math.PI);  // metres
-    return d < 0.1 ? (Math.round(d * 1000) / 10) + ' cm' : d < 1 ? Math.round(d * 100) + ' cm' : (Math.round(d * 10) / 10) + ' m';
+  /* Radar cross section as an x/y graph: each aircraft is a square with the same area as its RCS, all sharing the
+     bottom-left corner. Both axes are logarithmic (1 cm to 30 m per side), so a stealth fighter and a bomber
+     fit on the same chart. One short line per aircraft below it. */
+  const RCS_L0 = -2.5, RCS_L1 = 1.5;  // log10 of the side length in metres: 3 mm to 32 m
+  function rcsSquares(sq) {  // sq: [{ rcs, color, label, ref }]
+    const X0 = 46, Y0 = 8, P = 270, W = X0 + P + 10, Hh = Y0 + P + 34;
+    const f = side => Math.max(1.5, Math.min(P, (Math.log10(side) - RCS_L0) / (RCS_L1 - RCS_L0) * P));
+    const ticks = [[0.01, '1 cm'], [0.1, '10 cm'], [1, '1 m'], [10, '10 m']];
+    let g = ticks.map(([v, t]) => {
+      const d = f(v);
+      return `<line x1="${X0 + d}" y1="${Y0}" x2="${X0 + d}" y2="${Y0 + P}" class="rg"/><line x1="${X0}" y1="${Y0 + P - d}" x2="${X0 + P}" y2="${Y0 + P - d}" class="rg"/>
+        <text x="${X0 + d}" y="${Y0 + P + 15}" text-anchor="middle">${t}</text><text x="${X0 - 6}" y="${Y0 + P - d + 4}" text-anchor="end">${t}</text>`;
+    }).join('');
+    g += `<rect x="${X0}" y="${Y0}" width="${P}" height="${P}" class="rf"/><text x="${X0 + P / 2}" y="${Hh - 2}" text-anchor="middle" class="rt">square of the same radar area (width × height)</text>`;
+    // biggest first so the smaller squares sit on top
+    sq.slice().sort((p, q) => q.rcs - p.rcs).forEach(s => {
+      const d = f(Math.sqrt(s.rcs)), x = X0, y = Y0 + P - d;
+      g += s.ref
+        ? `<rect x="${x}" y="${y}" width="${d}" height="${d}" class="rr"/>`
+        : `<rect x="${x}" y="${y}" width="${d}" height="${d}" style="fill:${s.color};fill-opacity:.22;stroke:${s.color};stroke-width:2"/>`;
+      const inside = d > 70;
+      g += `<text x="${inside ? x + d - 5 : x + d + 4}" y="${inside ? y + 14 : y + 4}" text-anchor="${inside ? 'end' : 'start'}" class="${s.ref ? 'rl' : 'rv'}"${s.ref ? '' : ` style="fill:${s.color}"`}>${esc(s.label)}</text>`;
+    });
+    return `<svg class="rcs-svg" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Radar cross sections drawn as squares">${g}</svg>`;
   }
-  /* Log-scale chart: 1/10,000 m² to 1,000 m², one band per factor of ten, each band named after a thing with that echo. */
-  const RCS_LO = -4, RCS_HI = 3;
-  const RCS_BANDS = ['insect', 'golf ball', 'bird', 'person', 'car', 'truck', 'barn'];
-  const rcsPct = v => Math.max(0, Math.min(100, (Math.log10(v) - RCS_LO) / (RCS_HI - RCS_LO) * 100));
   function rcsHTML(items) {
     items = items.filter(it => it.a.rcs);
     if (!items.length) return '';
     const many = items.length > 1;
-    const bands = RCS_BANDS.map((b, i) => `<i class="rcs-band${i % 2 ? ' alt' : ''}"></i>`).join('');
-    // On a single aircraft's page, well-known types as faint reference marks for scale.
-    const refs = many ? '' : ['f22', 'f16', 'b52'].filter(id => id !== items[0].a.id && BY_ID[id]).map(id =>
-      `<span class="rcs-ref${rcsPct(BY_ID[id].rcs) < 6 ? ' edge' : ''}" style="left:${rcsPct(BY_ID[id].rcs).toFixed(1)}%">${esc(BY_ID[id].name.split(' ')[0])}</span>`).join('');
-    const rows = items.map(({ a, color }) => `
-      <div class="rcs-row" style="--c:${color}">
-        <div class="rcs-name">${many ? `<b>${esc(a.name)}</b> ` : ''}${esc(U.fmt(a.rcs, 'rcs'))}${mark(a, 'Radar cross section')}</div>
-        ${refs ? `<div class="rcs-refs">${refs}</div>` : ''}
-        <div class="rcs-track">${bands}<span class="rcs-dot" style="left:${rcsPct(a.rcs).toFixed(1)}%"></span></div>
-      </div>`).join('');
-    const axis = `<div class="rcs-axis">${RCS_BANDS.map(b => `<span>${b}</span>`).join('')}</div>
-      <div class="rcs-ticks">${[-4, -2, 0, 2].map(e => `<span style="left:${rcsPct(Math.pow(10, e))}%">${e < 0 ? '1/' + Math.pow(10, -e).toLocaleString('en-US') : Math.pow(10, e).toLocaleString('en-US')} m²</span>`).join('')}</div>`;
-    const facts = items.map(({ a, color }) => `<li style="--c:${color}">${many ? `<b>${esc(a.name)}:</b> ${esc(H.rcsLike(a.rcs))}` : esc(H.rcsLike(a.rcs).replace(/^a/, 'A'))} on radar, the same echo as a metal ball <b>${ballText(a.rcs)}</b> across. Spotted from about <b>${esc(U.fmt(detectKm(a.rcs), 'dist'))}</b>.</li>`).join('');
-    let ratio = '';
-    if (many) {
-      const s = items.slice().sort((x, y) => x.a.rcs - y.a.rcs), lo = s[0].a, hi = s[s.length - 1].a;
-      const r = hi.rcs / lo.rcs;
-      if (r >= 2) ratio = `<p class="rcs-ratio">The ${esc(hi.name)} reflects about <b>${r >= 100 ? Math.round(r).toLocaleString('en-US') : Math.round(r * 10) / 10}×</b> more radar energy than the ${esc(lo.name)}, so a radar sees it ${Math.round(Math.pow(r, 0.25) * 10) / 10}× farther away.</p>`;
-    }
+    const short = v => U.fmt(v, 'rcs').replace(/ \(.*\)$/, '');  // "≈1.2 m²"
+    const sq = items.map(({ a, color }) => ({ rcs: a.rcs, color, label: short(a.rcs) }));
+    if (!many) ['f22', 'f16', 'b52'].filter(id => id !== items[0].a.id && BY_ID[id]).forEach(id =>
+      sq.push({ rcs: BY_ID[id].rcs, ref: true, label: BY_ID[id].name.split(' ')[0] }));
+    const lines = items.map(({ a, color }) => `<li style="--c:${color}">${many ? `<b>${esc(a.name)}</b>: ` : ''}${esc(short(a.rcs))}${mark(a, 'Radar cross section')}, ${esc(H.rcsLike(a.rcs))}, seen from ~${esc(U.fmt(detectKm(a.rcs), 'dist'))}.</li>`).join('');
     return `<section class="panel">
       <h2>Radar cross section</h2>
-      <p class="sub">How big it looks to radar (estimated, head-on). Each step to the right is ten times bigger.</p>
-      <div class="rcs-chart">${rows}${axis}</div>
-      ${ratio}
-      <ul class="rcs-facts">${facts}</ul>
-      <p class="fine">"Spotted from" assumes a radar that detects a 1 m² target at 100 km. Detection range grows with the fourth root of the radar cross section, so 16 times smaller means half the distance. Real figures are classified or unpublished; tap * for each source.</p>
+      <p class="sub">Estimated, head-on.${many ? '' : ' Grey squares: F-22, F-16 and B-52 for scale.'}</p>
+      ${rcsSquares(sq)}
+      <ul class="rcs-facts${many ? ' many' : ''}">${lines}</ul>
     </section>`;
   }
 
