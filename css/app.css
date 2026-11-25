@@ -444,3 +444,9 @@ mark.find-hit.cur { background: #ff9d00; color: #111; box-shadow: 0 0 0 2px #ff9
 .rcs-svg .rbus * { vector-effect: non-scaling-stroke; }
 .rcs-svg .rbus .hub { fill: var(--surface); fill-opacity: 1; }
 .rcs-svg .rk { stroke: var(--muted); stroke-width: 1; opacity: .7; }
+.rcs-zoom { position: relative; }
+.rcs-plot { touch-action: pan-y; }  /* one finger scrolls the page; two fingers zoom the chart */
+.rz-btns { display: flex; justify-content: flex-end; gap: 6px; margin: 6px 0 -4px; }
+.rz-btns .btn { min-width: 38px; padding: 5px 10px; font-size: 15px; font-weight: 700; }
+.rcs-svg .rball circle { fill: var(--muted); fill-opacity: .14; stroke: var(--muted); stroke-opacity: .8; stroke-width: 1.2; }
+.rcs-svg .rball .dimple { fill: var(--muted); fill-opacity: .35; stroke: none; }

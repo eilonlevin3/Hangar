@@ -627,47 +627,65 @@
   /* "Seen from": a radar that detects 1 m² at 100 km; range grows with the fourth root of RCS. */
   const detectKm = rcs => 100 * Math.pow(rcs, 0.25);  // radar range grows with the fourth root of RCS
   /* Radar cross section as an x/y graph: each aircraft is a square with the same area as its RCS, all sharing the
-     bottom-left corner. Linear axes in metres (owner, 2026-11-25: not log), scaled to the biggest square shown,
-     so stealth aircraft really do shrink to a dot. A bus silhouette gives the scale. */
-  function rcsSquares(sq) {  // sq: [{ rcs, color, label, ref, bus }]
-    const X0 = 40, Y0 = 14, P = 270, W = X0 + P + 12, Hh = Y0 + P + 34;
-    const top = Math.max(...sq.filter(s => !s.ref).map(s => Math.sqrt(s.rcs)));
-    const nice = v => { const e = Math.pow(10, Math.floor(Math.log10(v))), m = v / e; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * e; };
-    const step = nice(top / 4), max = Math.ceil(top * 1.06 / step) * step;
+     bottom-left corner. Linear axes in metres (owner, 2026-11-25: not log). The scale object is a bus (≈30 m²)
+     for ordinary aircraft and a golf ball for stealthy ones (owner, 2026-11-25), and the chart zooms about the
+     corner: pinch, mouse wheel, or the + / − / Fit buttons. */
+  const BUS_RCS = 30;                      // a city bus head-on: rough, a big flat-fronted box
+  const BALL_D = 0.0427;                   // golf ball diameter, m; drawn at its real size
+  const BALL_RCS = Math.PI * Math.pow(BALL_D / 2, 2);  // ≈0.0014 m² if it were metal (a sphere's RCS is its disc area)
+  const RCS_CH = {};                       // chart state by id: { sq, fit, max }
+  let rcsSeq = 0;
+  const niceUp = v => { const e = Math.pow(10, Math.floor(Math.log10(v))), m = v / e; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * e; };
+  const fmtM = v => v < 0.01 ? (Math.round(v * 10000) / 10) + ' mm' : v < 1 ? (Math.round(v * 1000) / 10) + ' cm' : (Math.round(v * 10) / 10) + ' m';
+
+  function rcsSquares(sq, max, rid) {  // sq: [{ rcs, color, label, ref }], max: side length (m) at the chart edge
+    const X0 = 44, Y0 = 14, P = 266, W = X0 + P + 12, Hh = Y0 + P + 34;
     const f = side => side / max * P;
-    const fmtM = v => v < 1 ? Math.round(v * 100) + ' cm' : (Math.round(v * 10) / 10) + ' m';
+    const step = niceUp(max / 5);
     let g = '';
-    for (let v = step; v <= max + 1e-9; v += step) {
+    for (let v = step; v <= max * 1.0001; v += step) {
       const d = f(v);
       g += `<line x1="${X0 + d}" y1="${Y0}" x2="${X0 + d}" y2="${Y0 + P}" class="rg"/><line x1="${X0}" y1="${Y0 + P - d}" x2="${X0 + P}" y2="${Y0 + P - d}" class="rg"/>
         <text x="${X0 + d}" y="${Y0 + P + 15}" text-anchor="middle">${fmtM(v)}</text><text x="${X0 - 6}" y="${Y0 + P - d + 4}" text-anchor="end">${fmtM(v)}</text>`;
     }
     g += `<rect x="${X0}" y="${Y0}" width="${P}" height="${P}" class="rf"/><text x="${X0 - 6}" y="${Y0 + P + 15}" text-anchor="end">0</text>
-      <text x="${X0 + P / 2}" y="${Hh - 2}" text-anchor="middle" class="rt">square of the same radar area (width × height)</text>`;
+      <text x="${X0 + P / 2}" y="${Hh - 2}" text-anchor="middle" class="rt">square of the same radar area (width × height)</text>
+      <clipPath id="rc${rid}"><rect x="${X0}" y="${Y0 - 1}" width="${P + 1}" height="${P + 1}"/></clipPath><g clip-path="url(#rc${rid})">`;
+    let labels = '', objTop = 0;
+    // the scale objects, drawn only when they are a sensible size at this zoom
+    const busD = f(Math.sqrt(BUS_RCS)), ballD = f(BALL_D);
+    if (busD <= P * 1.02 && busD >= 30) {  // side-view bus filling the width of its square, standing on the x axis
+      const k = busD / 100, by = Y0 + P - 56 * k;
+      g += `<g class="rbus" transform="translate(${X0} ${by.toFixed(1)}) scale(${k.toFixed(4)})">
+        <path fill-rule="evenodd" d="M8 4h84a6 6 0 0 1 6 6v36H2V10a6 6 0 0 1 6-6z M10 10h12v14H10z M26 10h12v14H26z M42 10h12v14H42z M58 10h12v14H58z M74 10h8v30h-8z M86 10h9v18h-9z"/>
+        <circle cx="22" cy="47" r="8"/><circle cx="78" cy="47" r="8"/><circle cx="22" cy="47" r="3" class="hub"/><circle cx="78" cy="47" r="3" class="hub"/></g>`;
+      labels += `<text x="${X0 + busD - 5}" y="${(by - 6).toFixed(1)}" text-anchor="end" class="rl">bus ≈${BUS_RCS} m²</text>`;
+      objTop = 56 * k;
+    } else if (ballD >= 14 && ballD <= P * 1.02) {  // golf ball at its real size, sitting in the corner
+      const r = ballD / 2, cx = X0 + r, cy = Y0 + P - r;
+      const dim = [[-.45, -.35], [0, -.55], [.45, -.35], [-.55, .1], [0, 0], [.55, .1], [-.3, .5], [.3, .5]]
+        .map(([u, v]) => `<circle cx="${(cx + u * r).toFixed(1)}" cy="${(cy + v * r).toFixed(1)}" r="${(r * .1).toFixed(1)}" class="dimple"/>`).join('');
+      g += `<g class="rball"><circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}"/>${dim}</g>`;
+      labels += `<text x="${(X0 + ballD + 6).toFixed(1)}" y="${(cy + 4).toFixed(1)}" class="rl">golf ball (4.3 cm)</text>`;
+      objTop = ballD;
+    }
     let small = 0;
-    const bus = sq.find(s => s.bus), base = bus ? Y0 + P - 0.56 * f(Math.sqrt(bus.rcs)) - 24 : Y0 + P - 30;  // small-square labels stack up from just above the bus
+    const base = Math.max(Y0 + 20, Math.min(Y0 + P - 30, Y0 + P - objTop - 24));  // small-square labels stack up from above the scale object
     // biggest first so the smaller squares sit on top; references bigger than the chart are left out
     sq.filter(s => !s.ref || Math.sqrt(s.rcs) <= max).sort((p, q) => q.rcs - p.rcs).forEach(s => {
       const d = Math.max(2, f(Math.sqrt(s.rcs))), x = X0, y = Y0 + P - d;
-      if (s.bus) {  // side-view bus silhouette filling the width of its square, standing on the x axis
-        const k = d / 100;
-        g += `<g class="rbus" transform="translate(${x} ${(y + d - 56 * k).toFixed(1)}) scale(${k.toFixed(3)})">
-          <path fill-rule="evenodd" d="M8 4h84a6 6 0 0 1 6 6v36H2V10a6 6 0 0 1 6-6z M10 10h12v14H10z M26 10h12v14H26z M42 10h12v14H42z M58 10h12v14H58z M74 10h8v30h-8z M86 10h9v18h-9z"/>
-          <circle cx="22" cy="47" r="8"/><circle cx="78" cy="47" r="8"/><circle cx="22" cy="47" r="3" class="hub"/><circle cx="78" cy="47" r="3" class="hub"/></g>
-          <text x="${x + d - 5}" y="${(y + d - 56 * k - 6).toFixed(1)}" text-anchor="end" class="rl">${esc(s.label)}</text>`;
-        return;
-      }
       g += s.ref
         ? `<rect x="${x}" y="${y}" width="${d}" height="${d}" class="rr"/>`
         : `<rect x="${x}" y="${y}" width="${d}" height="${d}" style="fill:${s.color};fill-opacity:.22;stroke:${s.color};stroke-width:${d > 6 ? 2 : 1}"/>`;
       const cls = s.ref ? 'rl' : 'rv', col = s.ref ? '' : ` style="fill:${s.color}"`;
-      if (d > 70) g += `<text x="${x + d - 5}" y="${y + 14}" text-anchor="end" class="${cls}"${col}>${esc(s.label)}</text>`;
-      else {  // small squares: label stacked in the top-left corner, with a thin line to the square
+      if (d > P) labels += `<text x="${X0 + P - 5}" y="${Y0 + 14}" text-anchor="end" class="${cls}"${col}>${esc(s.label)} ↗</text>`;
+      else if (d > 70) labels += `<text x="${x + d - 5}" y="${y + 14}" text-anchor="end" class="${cls}"${col}>${esc(s.label)}</text>`;
+      else {  // small squares: labels stacked above the scale object, with a thin line to the square's corner
         const ly = base - 16 * small++;
-        g += `<line x1="${x + d}" y1="${y}" x2="${X0 + 8}" y2="${ly + 3}" class="rk"${s.ref ? '' : ` style="stroke:${s.color}"`}/><text x="${X0 + 10}" y="${ly}" class="${cls}"${col}>${esc(s.label)}</text>`;
+        labels += `<line x1="${x + d}" y1="${y}" x2="${X0 + 8}" y2="${ly + 3}" class="rk"${s.ref ? '' : ` style="stroke:${s.color}"`}/><text x="${X0 + 10}" y="${ly}" class="${cls}"${col}>${esc(s.label)}</text>`;
       }
     });
-    return `<svg class="rcs-svg" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Radar cross sections drawn as squares">${g}</svg>`;
+    return `<svg class="rcs-svg" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Radar cross sections drawn as squares">${g}</g>${labels}</svg>`;
   }
   function rcsHTML(items) {
     items = items.filter(it => it.a.rcs);
@@ -677,14 +695,52 @@
     const sq = items.map(({ a, color }) => ({ rcs: a.rcs, color, label: short(a.rcs) }));
     if (!many) ['f22', 'f16', 'b52'].filter(id => id !== items[0].a.id && BY_ID[id]).forEach(id =>
       sq.push({ rcs: BY_ID[id].rcs, ref: true, label: BY_ID[id].name.split(' ')[0] }));
-    sq.push({ rcs: 30, bus: true, label: 'bus ≈30 m²' });  // a city bus head-on: rough, a big flat-fronted box (owner, 2026-11-25)
+    // fit the biggest aircraft plus its scale object: a golf ball for stealthy ones (largest square under ~30 cm), else a bus
+    const top = Math.max(...items.map(it => Math.sqrt(it.a.rcs)));
+    const want = Math.max(top, top < 0.3 ? BALL_D : Math.sqrt(BUS_RCS)) * 1.06, fstep = niceUp(want / 5);
+    const fit = Math.ceil(want / fstep) * fstep;
+    const rid = ++rcsSeq;
+    RCS_CH[rid] = { sq, fit, max: fit };
     const lines = items.map(({ a, color }) => `<li style="--c:${color}">${many ? `<b>${esc(a.name)}</b>: ` : ''}${esc(short(a.rcs))}${mark(a, 'Radar cross section')}, ${esc(H.rcsLike(a.rcs))}, seen from ~${esc(U.fmt(detectKm(a.rcs), 'dist'))}.</li>`).join('');
     return `<section class="panel">
       <h2>Radar cross section</h2>
-      <p class="sub">Estimated, head-on.${many ? ' Bus for scale.' : ' Grey: F-22, F-16, B-52 and a bus for scale.'}</p>
-      ${rcsSquares(sq)}
+      <p class="sub">Estimated, head-on.${many ? '' : ' Grey: F-22, F-16, B-52.'} Pinch or use + / − to zoom.</p>
+      <div class="rcs-zoom" data-rid="${rid}">
+        <div class="rz-btns"><button class="btn" data-rz="in" aria-label="Zoom in">+</button><button class="btn" data-rz="out" aria-label="Zoom out">−</button><button class="btn" data-rz="fit">Fit</button></div>
+        <div class="rcs-plot">${rcsSquares(sq, fit, rid)}</div>
+      </div>
       <ul class="rcs-facts${many ? ' many' : ''}">${lines}</ul>
     </section>`;
+  }
+  /* Zoom: one set of document-level listeners serves every chart (they are re-rendered with each page). */
+  function rcsZoom(box, max) {
+    const c = RCS_CH[box.dataset.rid]; if (!c) return;
+    c.max = Math.max(0.004, Math.min(Math.max(c.fit * 4, 8), max));
+    box.querySelector('.rcs-plot').innerHTML = rcsSquares(c.sq, c.max, box.dataset.rid);
+  }
+  function setupRcsZoom() {
+    document.addEventListener('click', e => {
+      const b = e.target.closest('[data-rz]'); if (!b) return;
+      const box = b.closest('.rcs-zoom'), c = RCS_CH[box.dataset.rid]; if (!c) return;
+      rcsZoom(box, b.dataset.rz === 'fit' ? c.fit : b.dataset.rz === 'in' ? c.max / 2 : c.max * 2);
+    });
+    document.addEventListener('wheel', e => {
+      const box = e.target.closest && e.target.closest('.rcs-zoom'); if (!box || !e.target.closest('.rcs-plot')) return;
+      e.preventDefault();
+      rcsZoom(box, RCS_CH[box.dataset.rid].max * Math.exp(e.deltaY * 0.0025));
+    }, { passive: false });
+    let pinch = null;
+    const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    document.addEventListener('touchstart', e => {
+      const box = e.target.closest && e.target.closest('.rcs-zoom');
+      if (box && e.touches.length === 2) pinch = { box, d0: dist(e.touches), m0: RCS_CH[box.dataset.rid].max };
+    }, { passive: true });
+    document.addEventListener('touchmove', e => {
+      if (!pinch || e.touches.length !== 2) return;
+      e.preventDefault();
+      rcsZoom(pinch.box, pinch.m0 * pinch.d0 / Math.max(10, dist(e.touches)));
+    }, { passive: false });
+    document.addEventListener('touchend', e => { if (e.touches.length < 2) pinch = null; });
   }
 
   function variantsHTML(f, cur) {
@@ -1040,6 +1096,7 @@
   window.addEventListener('hashchange', () => { trackDepth(); render(); });
   setupHeader();
   setupFind();
+  setupRcsZoom();
   setupLightbox();
   setupClicks();
   render();
