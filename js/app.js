@@ -536,9 +536,9 @@
               <div id="env"></div>
               <div class="legend"><span><i class="dot"></i>max speed</span><span><i class="dot hollow"></i>cruise</span><span><i class="dash"></i>speed of sound</span></div>
               ${envNotes([a])}
-              ${rcsHTML([a])}
               <p class="fine">Modeled from published stall speed, top speed and ceiling using the standard atmosphere. An illustration, not a flight-manual chart.</p>
             </section>
+            ${rcsHTML([{ a, color: 'var(--accent)' }])}
             <section class="panel">
               <h2>How it ranks</h2>
               <p class="sub">Percentile among all ${ALL.length} aircraft in Hangar (100 = highest).</p>
@@ -626,10 +626,46 @@
 
   /* Radar cross section under the envelope: how visible it is to radar, and how far away a radar would see it. */
   const detectKm = rcs => 100 * Math.pow(rcs, 0.25);  // radar range grows with the fourth root of RCS
-  function rcsHTML(list) {
-    const rows = list.filter(a => a.rcs).map(a => `<li>${list.length > 1 ? `<b>${esc(a.name)}:</b> ` : ''}${esc(U.fmt(a.rcs, 'rcs'))}${mark(a, 'Radar cross section')}, ${esc(H.rcsLike(a.rcs))}. Spotted from about <b>${esc(U.fmt(detectKm(a.rcs), 'dist'))}</b>.</li>`).join('');
-    return rows ? `<div class="env-rcs"><b class="env-rcs-h">Radar cross section (estimated, head-on)</b><ul>${rows}</ul>
-      <p class="fine">"Spotted from" assumes a radar that detects a 1 m² target at 100 km. Detection range grows with the fourth root of the radar cross section, so 16 times smaller means half the distance.</p></div>` : '';
+  /* Same radar echo as a metal ball of this diameter (a sphere's RCS is its cross-section area, pi r^2). */
+  function ballText(rcs) {
+    const d = 2 * Math.sqrt(rcs / Math.PI);  // metres
+    return d < 0.1 ? (Math.round(d * 1000) / 10) + ' cm' : d < 1 ? Math.round(d * 100) + ' cm' : (Math.round(d * 10) / 10) + ' m';
+  }
+  /* Log-scale chart: 1/10,000 m² to 1,000 m², one band per factor of ten, each band named after a thing with that echo. */
+  const RCS_LO = -4, RCS_HI = 3;
+  const RCS_BANDS = ['insect', 'golf ball', 'bird', 'person', 'car', 'truck', 'barn'];
+  const rcsPct = v => Math.max(0, Math.min(100, (Math.log10(v) - RCS_LO) / (RCS_HI - RCS_LO) * 100));
+  function rcsHTML(items) {
+    items = items.filter(it => it.a.rcs);
+    if (!items.length) return '';
+    const many = items.length > 1;
+    const bands = RCS_BANDS.map((b, i) => `<i class="rcs-band${i % 2 ? ' alt' : ''}"></i>`).join('');
+    // On a single aircraft's page, well-known types as faint reference marks for scale.
+    const refs = many ? '' : ['f22', 'f16', 'b52'].filter(id => id !== items[0].a.id && BY_ID[id]).map(id =>
+      `<span class="rcs-ref${rcsPct(BY_ID[id].rcs) < 6 ? ' edge' : ''}" style="left:${rcsPct(BY_ID[id].rcs).toFixed(1)}%">${esc(BY_ID[id].name.split(' ')[0])}</span>`).join('');
+    const rows = items.map(({ a, color }) => `
+      <div class="rcs-row" style="--c:${color}">
+        <div class="rcs-name">${many ? `<b>${esc(a.name)}</b> ` : ''}${esc(U.fmt(a.rcs, 'rcs'))}${mark(a, 'Radar cross section')}</div>
+        ${refs ? `<div class="rcs-refs">${refs}</div>` : ''}
+        <div class="rcs-track">${bands}<span class="rcs-dot" style="left:${rcsPct(a.rcs).toFixed(1)}%"></span></div>
+      </div>`).join('');
+    const axis = `<div class="rcs-axis">${RCS_BANDS.map(b => `<span>${b}</span>`).join('')}</div>
+      <div class="rcs-ticks">${[-4, -2, 0, 2].map(e => `<span style="left:${rcsPct(Math.pow(10, e))}%">${e < 0 ? '1/' + Math.pow(10, -e).toLocaleString('en-US') : Math.pow(10, e).toLocaleString('en-US')} m²</span>`).join('')}</div>`;
+    const facts = items.map(({ a, color }) => `<li style="--c:${color}">${many ? `<b>${esc(a.name)}:</b> ${esc(H.rcsLike(a.rcs))}` : esc(H.rcsLike(a.rcs).replace(/^a/, 'A'))} on radar, the same echo as a metal ball <b>${ballText(a.rcs)}</b> across. Spotted from about <b>${esc(U.fmt(detectKm(a.rcs), 'dist'))}</b>.</li>`).join('');
+    let ratio = '';
+    if (many) {
+      const s = items.slice().sort((x, y) => x.a.rcs - y.a.rcs), lo = s[0].a, hi = s[s.length - 1].a;
+      const r = hi.rcs / lo.rcs;
+      if (r >= 2) ratio = `<p class="rcs-ratio">The ${esc(hi.name)} reflects about <b>${r >= 100 ? Math.round(r).toLocaleString('en-US') : Math.round(r * 10) / 10}×</b> more radar energy than the ${esc(lo.name)}, so a radar sees it ${Math.round(Math.pow(r, 0.25) * 10) / 10}× farther away.</p>`;
+    }
+    return `<section class="panel">
+      <h2>Radar cross section</h2>
+      <p class="sub">How big it looks to radar (estimated, head-on). Each step to the right is ten times bigger.</p>
+      <div class="rcs-chart">${rows}${axis}</div>
+      ${ratio}
+      <ul class="rcs-facts">${facts}</ul>
+      <p class="fine">"Spotted from" assumes a radar that detects a 1 m² target at 100 km. Detection range grows with the fourth root of the radar cross section, so 16 times smaller means half the distance. Real figures are classified or unpublished; tap * for each source.</p>
+    </section>`;
   }
 
   function variantsHTML(f, cur) {
@@ -822,8 +858,8 @@
         <div id="env"></div>
         <div class="legend">${list.map((a, i) => `<span><i class="sw" style="background:${SERIES[i]}"></i>${esc(a.name)}</span>`).join('')}<span><i class="dot"></i>max speed</span><span><i class="dot hollow"></i>cruise</span><span><i class="dash"></i>speed of sound</span></div>
         ${envNotes(list)}
-        ${rcsHTML(list)}
-        <p class="fine">Modeled from published stall speed, top speed and ceiling using the standard atmosphere.</p></section>`;
+        <p class="fine">Modeled from published stall speed, top speed and ceiling using the standard atmosphere.</p></section>
+        ${rcsHTML(list.map((a, i) => ({ a, color: SERIES[i] })))}`;
     }
     CMP_GROUPS.forEach(([title, rows]) => {
       let rh = '';
