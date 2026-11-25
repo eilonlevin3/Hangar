@@ -84,7 +84,7 @@
   const FIELD = { 'Top speed': 'vmax', 'Top speed (Mach)': 'vmax', 'Top speed at sea level': 'vmaxSL', 'Cruise': 'cruise', 'Cruise speed': 'cruise',
     'Stall speed (clean, est.)': 'vstall', 'Ceiling': 'ceiling', 'Service ceiling': 'ceiling', 'Rate of climb': 'climb', 'g limits': 'gmax', 'Max g': 'gmax',
     'Range': 'range', 'Ferry range': 'ferry', 'Combat radius': 'radius', 'Empty weight': 'empty', 'Max take-off weight': 'mtow', 'Internal fuel': 'fuel',
-    'Max payload / weapons': 'payload', 'First flight': 'first', 'Number built': 'built', 'Power per engine': 'power', 'Entered service': 'intro', 'Take-off distance': 'takeoff', 'Thrust per engine': 'thrust', 'Total thrust': 'thrust' };
+    'Max payload / weapons': 'payload', 'First flight': 'first', 'Radar cross section': 'rcs', 'Number built': 'built', 'Power per engine': 'power', 'Entered service': 'intro', 'Take-off distance': 'takeoff', 'Thrust per engine': 'thrust', 'Total thrust': 'thrust' };
   function mark(a, label) {
     const f = FIELD[label];
     return a && f && a.est && a.est[f] ? `<button class="est" data-est="${a.id}|${f}" aria-label="Estimated figure: why?">*</button>` : '';
@@ -490,7 +490,8 @@
               ['Length', U.fmt(a.len, 'len')],
               [a.rotor ? 'Main rotor diameter' : 'Wingspan', U.fmt(a.span, 'len')],
               ['Height', U.fmt(a.height, 'len')],
-              ['Wing area', a.wing ? U.fmt(a.wing, 'area') : '—']
+              ['Wing area', a.wing ? U.fmt(a.wing, 'area') : '—'],
+              ['Radar cross section', a.rcs ? U.fmt(a.rcs, 'rcs') : '—', a.rcs ? 'estimated, head-on: ' + H.rcsLike(a.rcs) : '']
             ], a)}
             ${specPanel('Powerplant', [
               ['Engines', `${a.engN || 1} × ${esc(a.engine)}`],
@@ -670,7 +671,8 @@
       ['Length', a => a.len, 'len', null],
       ['Wingspan / rotor', a => a.span, 'len', null],
       ['Height', a => a.height, 'len', null],
-      ['Wing area', a => a.wing, 'area', null]
+      ['Wing area', a => a.wing, 'area', null],
+      ['Radar cross section', a => a.rcs, 'rcs', 'lo']
     ]],
     ['Powerplant', [
       ['Engines', a => null, null, null, a => `${a.engN || 1} × ${a.engine}`],

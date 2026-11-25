@@ -7,7 +7,7 @@ const path = require('path');
 global.window = global;
 global.localStorage = { getItem: () => null, setItem() {} };
 const root = path.join(__dirname, '..');
-for (const f of ['data.js', 'variants.js', 'drone-variants.js', 'civil-variants.js', 'variant-perf.js', 'units.js', 'envelope.js']) {
+for (const f of ['data.js', 'variants.js', 'drone-variants.js', 'civil-variants.js', 'variant-perf.js', 'rcs.js', 'units.js', 'envelope.js']) {
   const file = path.join(root, 'js', f);
   if (fs.existsSync(file)) eval(fs.readFileSync(file, 'utf8'));
 }
@@ -26,6 +26,7 @@ let bad = 0;
 const say = (a, msg) => { bad++; console.log(`${a.id.padEnd(16)} ${msg}`); };
 for (const a of list) {
   for (const c of a.cats) if (!cats.has(c)) say(a, `unknown category ${c}`);
+  if (!(a.rcs > 0) || !a.est || !a.est.rcs) say(a, 'missing radar cross section or its * note');
   if (!a.vmax || !a.ceiling) { say(a, 'missing vmax or ceiling'); continue; }
   const m = H.envelope.model(a);
   if (!m) { say(a, 'no envelope'); continue; }

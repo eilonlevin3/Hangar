@@ -67,6 +67,7 @@
           if (system === 'metric' && Math.abs(v) >= 10000 && !opts.exact) return n1.format(v / 1000) + ' t';
           return n0.format(conv(v, kind)) + ' ' + unit(kind);
         case 'cost': return '$' + round(v) + 'M';
+        case 'rcs': return window.HANGAR.rcsText(v);
         case 'count': return n0.format(v);
         case 'year': return String(v);
         case 'hours':

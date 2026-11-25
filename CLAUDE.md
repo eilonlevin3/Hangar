@@ -46,6 +46,7 @@ The owner works on this from an iPhone through Telegram. Do this:
 | `js/drone-variants.js` | Drone models (MQ-9A/ER/B, RQ-4/Triton, Hermes 900/StarLiner/HFE...), same format as variants.js with inline `est`. |
 | `js/civil-variants.js` | Bombardier family models (CRJ, Dash 8, A220/CSeries, Global, Challenger 300/600, Learjet, CL-215/415). Optional `popLabel` replaces the "most common" tag on the default model (e.g. "flagship"). |
 | `tools/check-envelopes.js` | `node tools/check-envelopes.js`: checks every aircraft and model (cruise and max-speed points inside the envelope, basic consistency). **Run it before every push**; it must report 0 problems. |
+| `js/rcs.js` | Estimated radar cross section (`rcs`, m², head-on X-band) for every aircraft: published public estimates in `KNOWN`, per-model ones in `VAR`, otherwise k × span² by category. Every value gets an `est.rcs` * note. New aircraft get one automatically; add to `KNOWN` if a public figure exists. |
 | `sw.js` | Service worker: network-first app shell. |
 
 ## Adding an aircraft
@@ -83,3 +84,4 @@ Use the variant named in `variant` consistently. Check the article title opens o
 - Freighters (owner, 2026-11-24): category `freighter` (777F, A350F). An aircraft whose Wikipedia article is shared with other versions can set `photo` (a Commons file name, used for its card, hero and first gallery photo with credit) and `photoNote` (shown with the photos, e.g. when the photo is of a related version). Status `Development` ("In development") is for aircraft not yet in service; their target figures carry a *.
 - Helicopters (owner, 2026-11-24): split into three categories, each with at least 10 of the most popular types: `attackheli` "Attack & scout helicopters", `milheli` "Military transport & utility helicopters" (incl. heavy lift and naval; the V-22 is also here), `civilheli` "Civil & light helicopters" (training, private, air ambulance, offshore). The old `helicopter` id is gone.
 - Skunk Works (owner, 2026-11-25): category `skunk` for Lockheed's Advanced Development Programs: P-80, F-104, U-2, A-12, YF-12, SR-71, D-21, JetStar, F-117, F-22, F-35, RQ-170, X-59. Aircraft that already had a home category keep it and add `skunk` as a second one.
+- Radar cross section (owner, 2026-11-25): every aircraft shows an estimated RCS (Dimensions panel and Compare, lower is better) with a * explaining the source. The checker fails if one is missing.
